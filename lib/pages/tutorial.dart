@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
@@ -14,92 +13,105 @@ class TutorialPage extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 10 : 38,
-            vertical: isMobile ? 16 : 44,
+            horizontal: isMobile ? 16 : 48,
+            vertical: isMobile ? 18 : 44,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // HERO TUTORIAL
-              Stack(
+              SizedBox(height: isMobile ? 30 : 54),
+              // PLAYER + TEXTO NA MESMA LINHA
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (!isMobile)
-                    Positioned(
-                      top: 6,
-                      right: 12,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.greenAccent.withOpacity(0.32),
-                              blurRadius: 30,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.sports_soccer,
-                          size: 80,
-                          color: const Color(0xFF00FF00),
-                        ),
-                      ),
-                    ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(height: isMobile ? 16 : 40),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  Icon(
+                    Icons.play_circle_outline,
+                    size: isMobile ? 38 : 56,
+                    color: const Color(0xFF00FF00),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: RichText(
+                      text: TextSpan(
                         children: [
-                          Icon(
-                            Icons.play_circle_outline,
-                            size: isMobile ? 44 : 60,
-                            color: const Color(0xFF00FF00),
-                          ),
-                          const SizedBox(width: 16),
-                          Text(
-                            'Como Funciona o IFUT',
+                          TextSpan(
+                            text: 'Como Funciona o ',
                             style: TextStyle(
-                              fontSize: isMobile ? 32 : 46,
+                              fontSize: isMobile ? 28 : 40,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
+                              letterSpacing: 0.5,
                               shadows: [
                                 Shadow(
-                                  color: Colors.greenAccent,
-                                  blurRadius: 18,
-                                  offset: Offset(0, 0),
+                                  color: Colors.greenAccent.withOpacity(0.9),
+                                  blurRadius: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'IFUT',
+                            style: TextStyle(
+                              fontSize: isMobile ? 28 : 40,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF00FF00),
+                              letterSpacing: 0.5,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.greenAccent.withOpacity(0.95),
+                                  blurRadius: 20,
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 22),
-                      Text(
-                        'Aprenda a usar nossa plataforma em poucos passos e aproveite ao máximo suas partidas!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.88),
-                          fontSize: isMobile ? 17 : 25,
-                        ),
-                      ),
-                      SizedBox(height: isMobile ? 20 : 36),
-                    ],
+                      textAlign: TextAlign.left,
+                    ),
                   ),
                 ],
               ),
-              // ETAPAS GRANDES
+              const SizedBox(height: 12),
+
               _TutorialSteps(isMobile: isMobile),
-              SizedBox(height: 48),
-              // BOTÃO FINAL GRANDÃO
-              _NeonButton(
-                text: 'Voltar para Início',
-                icon: Icons.arrow_back_rounded,
-                filled: true,
-                fontSize: isMobile ? 22 : 28,
-                iconSize: isMobile ? 25 : 32,
-                onTap: () => Navigator.pop(context),
+              const SizedBox(height: 44),
+              Column(
+                children: [
+                  Text(
+                    'Pronto para começar?',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: isMobile ? 28 : 38,
+                      shadows: [
+                        Shadow(
+                          color: Colors.greenAccent.withOpacity(0.7),
+                          blurRadius: 22,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _NeonButton(
+                    text: 'Cadastrar-se Agora',
+                    icon: Icons.rocket_launch_outlined,
+                    filled: true,
+                    fontSize: isMobile ? 22 : 28,
+                    iconSize: isMobile ? 23 : 32,
+                    onTap: () => Navigator.pushNamed(context, '/cadastro'),
+                  ),
+                  const SizedBox(height: 16),
+                  _NeonButton(
+                    text: 'Login',
+                    icon: Icons.login,
+                    filled: false,
+                    fontSize: isMobile ? 22 : 28,
+                    iconSize: isMobile ? 23 : 32,
+                    darkButton: true,
+                    onTap: () => Navigator.pushNamed(context, '/login'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -109,14 +121,14 @@ class TutorialPage extends StatelessWidget {
   }
 }
 
-// PASSOS DO TUTORIAL — Tudo grande, modelo grid
+// MESMO _TutorialSteps e _TutorialCard do seu código anterior!
+
 class _TutorialSteps extends StatelessWidget {
   final bool isMobile;
   const _TutorialSteps({required this.isMobile});
 
   @override
   Widget build(BuildContext context) {
-    // Dados dos passos
     final steps = [
       (
         icon: Icons.person_add_alt_1,
@@ -128,7 +140,7 @@ class _TutorialSteps extends StatelessWidget {
         icon: Icons.search,
         title: 'Encontre Partidas',
         desc:
-            'Explore nossa lista de partidas abertas e solicite participação nas que mais combinam com seu perfil e localização.',
+            'Explore nossa lista de partidas abertas e solicite participação nas que combinam com seu perfil e localização.',
       ),
       (
         icon: Icons.add_circle_outline,
@@ -168,30 +180,47 @@ class _TutorialSteps extends StatelessWidget {
       ),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isMobile ? 1 : 2,
-        crossAxisSpacing: 26,
-        mainAxisSpacing: 26,
-        childAspectRatio: isMobile ? 3.2 : 3.5,
-      ),
-      itemCount: steps.length,
-      itemBuilder: (ctx, i) {
-        final s = steps[i];
-        return _TutorialCard(
-          icon: s.icon,
-          title: s.title,
-          desc: s.desc,
-          isMobile: isMobile,
-        );
-      },
-    );
+    if (isMobile) {
+      return Column(
+        children: steps
+            .map(
+              (s) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: _TutorialCard(
+                  icon: s.icon,
+                  title: s.title,
+                  desc: s.desc,
+                  isMobile: isMobile,
+                ),
+              ),
+            )
+            .toList(),
+      );
+    } else {
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 32,
+          mainAxisSpacing: 32,
+          childAspectRatio: 2.9,
+        ),
+        itemCount: steps.length,
+        itemBuilder: (ctx, i) {
+          final s = steps[i];
+          return _TutorialCard(
+            icon: s.icon,
+            title: s.title,
+            desc: s.desc,
+            isMobile: isMobile,
+          );
+        },
+      );
+    }
   }
 }
 
-// Card do tutorial
 class _TutorialCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -208,23 +237,24 @@ class _TutorialCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 24 : 34,
-        horizontal: isMobile ? 18 : 28,
+        vertical: isMobile ? 30 : 36,
+        horizontal: isMobile ? 20 : 40,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF00FF00), width: 2),
+        color: Colors.black.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFF00FF00), width: 2.5),
         boxShadow: [
-          BoxShadow(color: Colors.green.withOpacity(0.13), blurRadius: 18),
+          BoxShadow(color: Colors.green.withOpacity(0.11), blurRadius: 18),
         ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: isMobile ? 36 : 54, color: const Color(0xFF00FF00)),
-          SizedBox(width: isMobile ? 13 : 26),
+          Icon(icon, size: isMobile ? 48 : 70, color: const Color(0xFF00FF00)),
+          SizedBox(width: isMobile ? 18 : 32),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,21 +264,22 @@ class _TutorialCard extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
-                    fontSize: isMobile ? 22 : 29,
+                    fontSize: isMobile ? 27 : 34,
                     shadows: [
                       Shadow(
-                        color: Colors.greenAccent.withOpacity(0.25),
+                        color: Colors.greenAccent.withOpacity(0.18),
                         blurRadius: 7,
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: isMobile ? 5 : 8),
+                SizedBox(height: isMobile ? 10 : 15),
                 Text(
                   desc,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.95),
-                    fontSize: isMobile ? 13.5 : 18,
+                    color: Colors.white.withOpacity(0.98),
+                    fontSize: isMobile ? 18.5 : 22,
+                    height: 1.32,
                   ),
                 ),
               ],
@@ -260,7 +291,7 @@ class _TutorialCard extends StatelessWidget {
   }
 }
 
-// Botão neon (usando o seu padrão)
+// Botão neon
 class _NeonButton extends StatelessWidget {
   final String text;
   final IconData icon;
@@ -282,56 +313,47 @@ class _NeonButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: filled
-          ? const Color(0xFF00FF00)
-          : (darkButton ? Colors.black : Colors.transparent),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 17, horizontal: 30),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: filled
-                ? null
-                : Border.all(color: const Color(0xFF00FF00), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF00FF00).withOpacity(0.20),
-                blurRadius: 18,
-                spreadRadius: filled ? 5 : 2,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: filled ? Colors.black : const Color(0xFF00FF00),
-                size: iconSize ?? 26,
-              ),
-              const SizedBox(width: 14),
-              Text(
-                text,
-                style: TextStyle(
-                  color: filled ? Colors.black : const Color(0xFF00FF00),
-                  fontWeight: FontWeight.bold,
-                  fontSize: fontSize ?? 21,
-                  letterSpacing: 1.2,
-                  shadows: [
-                    Shadow(
-                      color: const Color(0xFF00FF00).withOpacity(0.18),
-                      blurRadius: 8,
-                    ),
-                  ],
+    return Container(
+      width: double.infinity, // Deixa o botão expandido para centralizar
+      margin: const EdgeInsets.symmetric(horizontal: 0),
+      child: Material(
+        color: filled
+            ? const Color(0xFF00FF00)
+            : (darkButton ? const Color(0xFF252525) : Colors.transparent),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: filled ? Colors.black : Colors.white,
+                  size: iconSize ?? 32,
                 ),
-              ),
-            ],
+                const SizedBox(width: 16),
+                Text(
+                  text,
+                  style: TextStyle(
+                    color: filled ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: fontSize ?? 28,
+                    letterSpacing: 1.2,
+                    shadows: filled
+                        ? [
+                            Shadow(
+                              color: const Color(0xFF00FF00).withOpacity(0.13),
+                              blurRadius: 8,
+                            ),
+                          ]
+                        : [],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

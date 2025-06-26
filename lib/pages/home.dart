@@ -1,3 +1,4 @@
+// HomePage.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
@@ -57,65 +58,46 @@ class HomePage extends StatelessWidget {
                         ],
                       ),
                 const SizedBox(height: 38),
+
                 // Features section
                 Center(
                   child: Text(
                     'Por que escolher o IFUT?',
                     style: TextStyle(
-                      color: const Color(0xFF00FF00),
+                      color: Colors.white,
                       fontWeight: FontWeight.w900,
-                      fontSize: isMobile ? 28 : 34, // AUMENTA título
-                      shadows: [
-                        Shadow(
-                          color: Colors.greenAccent.withOpacity(0.7),
-                          blurRadius: 18,
-                        ),
-                      ],
+                      fontSize: isMobile ? 28 : 34,
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 _FeaturesRow(isMobile: isMobile),
-                const SizedBox(height: 38),
-                // CTA Final
+                const SizedBox(height: 12),
+
+                // Novo texto destacado (no lugar do "Pronto para começar?")
                 Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Pronto para começar?',
-                        style: TextStyle(
-                          color: const Color(0xFF00FF00),
-                          fontWeight: FontWeight.w900,
-                          fontSize: isMobile ? 26 : 32, // AUMENTA
-                          shadows: [
-                            Shadow(
-                              color: Colors.greenAccent.withOpacity(0.7),
-                              blurRadius: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Junte-se a centenas de jogadores que já usam o IFUT!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ), // AUMENTA
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 18),
-                      _NeonButton(
-                        text: 'COMEÇAR AGORA',
-                        icon: Icons.rocket_launch_outlined,
-                        filled: true,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/cadastro');
-                        },
-                        fontSize: isMobile ? 20 : 24, // AUMENTA
-                        iconSize: isMobile ? 26 : 30, // AUMENTA
-                      ),
-                    ],
+                  child: Text(
+                    'Junte-se a centenas de jogadores que já usam o IFUT!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: isMobile ? 26 : 32, // Maior
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Botão MAIOR
+                Center(
+                  child: _NeonButton(
+                    text: 'COMEÇAR AGORA',
+                    icon: Icons.rocket_launch_outlined,
+                    filled: true,
+                    onTap: () {
+                      Navigator.pushNamed(context, '/cadastro');
+                    },
+                    fontSize: isMobile ? 23 : 28, // maior
+                    iconSize: isMobile ? 30 : 38, // maior
                   ),
                 ),
               ],
@@ -139,7 +121,7 @@ class _HeroTitle extends StatelessWidget {
           TextSpan(
             text: 'Organize suas\nPartidas de\n',
             style: TextStyle(
-              fontSize: isMobile ? 44 : 62, // MAIS MAIOR!
+              fontSize: isMobile ? 44 : 62,
               fontWeight: FontWeight.w800,
               color: Colors.white,
               height: 1.09,
@@ -149,7 +131,7 @@ class _HeroTitle extends StatelessWidget {
           TextSpan(
             text: 'Futebol Society',
             style: TextStyle(
-              fontSize: isMobile ? 44 : 62, // MAIS MAIOR!
+              fontSize: isMobile ? 44 : 62,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF00FF00),
               shadows: [
@@ -197,7 +179,7 @@ class _HeroButtons extends StatelessWidget {
           },
           fontSize: isMobile ? 19 : 24,
           iconSize: isMobile ? 22 : 28,
-          darkButton: true, // AGORA O BOTÃO FICA PRETO MESMO!
+          darkButton: true,
         ),
       ],
     );
@@ -269,7 +251,7 @@ class _HeroImage extends StatelessWidget {
   }
 }
 
-// Features Row e Cards (não precisa alterar muito, mas pode aumentar fonte)
+// Features Row e Cards
 class _FeaturesRow extends StatelessWidget {
   final bool isMobile;
   const _FeaturesRow({required this.isMobile});
@@ -322,15 +304,15 @@ class _FeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: isMobile ? double.infinity : 300, // MAIOR
+      width: isMobile ? double.infinity : 340, // MAIOR
       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 24 : 32,
-        horizontal: isMobile ? 18 : 24,
+        vertical: isMobile ? 28 : 38, // maior padding
+        horizontal: isMobile ? 22 : 36,
       ),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.84),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF00FF00), width: 2),
         boxShadow: [
           BoxShadow(color: Colors.green.withOpacity(0.12), blurRadius: 22),
@@ -339,24 +321,31 @@ class _FeatureCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: isMobile ? 40 : 60, color: const Color(0xFF00FF00)),
-          const SizedBox(height: 16),
+          Icon(icon, size: isMobile ? 54 : 70, color: const Color(0xFF00FF00)),
+          const SizedBox(height: 18),
           Text(
             title,
             style: TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: isMobile ? 21 : 28, // MAIOR
+              fontWeight: FontWeight.w900,
+              fontSize: isMobile ? 27 : 34, // IGUAL AO TUTORIAL
               letterSpacing: 0.6,
+              shadows: [
+                Shadow(
+                  color: Colors.greenAccent.withOpacity(0.18),
+                  blurRadius: 7,
+                ),
+              ],
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 11),
           Text(
             desc,
             style: TextStyle(
-              color: Colors.white70,
-              fontSize: isMobile ? 14 : 18, // MAIOR
+              color: Colors.white.withOpacity(0.98),
+              fontSize: isMobile ? 18.5 : 22, // IGUAL AO TUTORIAL
+              height: 1.32,
             ),
             textAlign: TextAlign.center,
           ),
@@ -374,7 +363,7 @@ class _NeonButton extends StatelessWidget {
   final VoidCallback onTap;
   final double? fontSize;
   final double? iconSize;
-  final bool darkButton; // NOVO!
+  final bool darkButton;
 
   const _NeonButton({
     required this.text,
@@ -391,25 +380,23 @@ class _NeonButton extends StatelessWidget {
     return Material(
       color: filled
           ? const Color(0xFF00FF00)
-          : (darkButton
-                ? Colors.black
-                : Colors.transparent), // Preto puro se darkButton!
-      borderRadius: BorderRadius.circular(12),
+          : (darkButton ? Colors.black : Colors.transparent),
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 36),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             border: filled
                 ? null
                 : Border.all(color: const Color(0xFF00FF00), width: 2),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF00FF00).withOpacity(0.18),
-                blurRadius: 16,
-                spreadRadius: filled ? 5 : 2,
+                blurRadius: 18,
+                spreadRadius: filled ? 7 : 2,
                 offset: const Offset(0, 0),
               ),
             ],
@@ -421,15 +408,15 @@ class _NeonButton extends StatelessWidget {
               Icon(
                 icon,
                 color: filled ? Colors.black : const Color(0xFF00FF00),
-                size: iconSize ?? 26,
+                size: iconSize ?? 28,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Text(
                 text,
                 style: TextStyle(
                   color: filled ? Colors.black : const Color(0xFF00FF00),
                   fontWeight: FontWeight.bold,
-                  fontSize: fontSize ?? 19,
+                  fontSize: fontSize ?? 22,
                   letterSpacing: 1.2,
                   shadows: [
                     Shadow(
