@@ -25,13 +25,18 @@ class HomePage extends StatelessWidget {
                 // HERO SECTION
                 isMobile
                     ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.center, // CENTRALIZAR
                         children: [
-                          _HeroTitle(isMobile: isMobile),
+                          Center(
+                            child: _HeroTitle(isMobile: isMobile),
+                          ), // CENTRO
                           const SizedBox(height: 32),
                           Center(child: _HeroImage(isMobile: isMobile)),
                           const SizedBox(height: 22),
-                          _HeroButtons(isMobile: isMobile),
+                          Center(
+                            child: _HeroButtons(isMobile: isMobile),
+                          ), // CENTRO
                         ],
                       )
                     : Row(
@@ -57,7 +62,7 @@ class HomePage extends StatelessWidget {
                           ),
                         ],
                       ),
-                const SizedBox(height: 38),
+                const SizedBox(height: 24),
 
                 // Features section
                 Center(
@@ -109,7 +114,6 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// Título destacado hero
 class _HeroTitle extends StatelessWidget {
   final bool isMobile;
   const _HeroTitle({required this.isMobile});
@@ -145,41 +149,49 @@ class _HeroTitle extends StatelessWidget {
           ),
         ],
       ),
+      textAlign: isMobile
+          ? TextAlign.center
+          : TextAlign.left, // <-- ESSA LINHA!
     );
   }
 }
 
-// Botões neon hero
+// Botões neon hero, centralizados!
 class _HeroButtons extends StatelessWidget {
   final bool isMobile;
   const _HeroButtons({required this.isMobile});
+
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 14,
-      runSpacing: 12,
-      alignment: WrapAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center, // Centraliza na coluna
       children: [
-        _NeonButton(
-          text: 'CADASTRE-SE GRÁTIS',
-          icon: Icons.person_add_alt_1,
-          filled: true,
-          onTap: () {
-            Navigator.pushNamed(context, '/cadastro');
-          },
-          fontSize: isMobile ? 19 : 24,
-          iconSize: isMobile ? 22 : 28,
+        Center(
+          child: _NeonButton(
+            text: 'CADASTRE-SE GRÁTIS',
+            icon: Icons.person_add_alt_1,
+            filled: true,
+            onTap: () {
+              Navigator.pushNamed(context, '/cadastro');
+            },
+            fontSize: isMobile ? 19 : 24,
+            iconSize: isMobile ? 22 : 28,
+          ),
         ),
-        _NeonButton(
-          text: 'Como Funciona',
-          icon: Icons.play_circle_outline,
-          filled: false,
-          onTap: () {
-            Navigator.pushNamed(context, '/tutorial');
-          },
-          fontSize: isMobile ? 19 : 24,
-          iconSize: isMobile ? 22 : 28,
-          darkButton: true,
+        const SizedBox(height: 14),
+        Center(
+          child: _NeonButton(
+            text: 'Como Funciona',
+            icon: Icons.play_circle_outline,
+            filled: false,
+            onTap: () {
+              Navigator.pushNamed(context, '/tutorial');
+            },
+            fontSize: isMobile ? 19 : 24,
+            iconSize: isMobile ? 22 : 28,
+            darkButton: true,
+            noShadow: true, // Novo parâmetro
+          ),
         ),
       ],
     );
@@ -355,7 +367,7 @@ class _FeatureCard extends StatelessWidget {
   }
 }
 
-// Botão neon
+// Atualize o _NeonButton para aceitar o noShadow (opcional)
 class _NeonButton extends StatelessWidget {
   final String text;
   final IconData icon;
@@ -364,6 +376,7 @@ class _NeonButton extends StatelessWidget {
   final double? fontSize;
   final double? iconSize;
   final bool darkButton;
+  final bool noShadow; // Adicionado!
 
   const _NeonButton({
     required this.text,
@@ -373,6 +386,7 @@ class _NeonButton extends StatelessWidget {
     this.fontSize,
     this.iconSize,
     this.darkButton = false,
+    this.noShadow = false, // Padrão: falso
   });
 
   @override
@@ -418,12 +432,16 @@ class _NeonButton extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   fontSize: fontSize ?? 22,
                   letterSpacing: 1.2,
-                  shadows: [
-                    Shadow(
-                      color: const Color(0xFF00FF00).withOpacity(0.16),
-                      blurRadius: 8,
-                    ),
-                  ],
+                  shadows: (filled || (!noShadow && !filled))
+                      ? [
+                          Shadow(
+                            color: filled
+                                ? const Color(0xFF00FF00).withOpacity(0.16)
+                                : Colors.transparent,
+                            blurRadius: filled ? 8 : 0,
+                          ),
+                        ]
+                      : [], // Sem sombra se noShadow=true
                 ),
               ),
             ],
