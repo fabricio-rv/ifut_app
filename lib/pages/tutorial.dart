@@ -99,7 +99,7 @@ class TutorialPage extends StatelessWidget {
                     filled: true,
                     fontSize: isMobile ? 22 : 28,
                     iconSize: isMobile ? 23 : 32,
-                    onTap: () => Navigator.pushNamed(context, '/cadastro'),
+                    onTap: () => Navigator.pushNamed(context, '/tipo_cadastro'),
                   ),
                   const SizedBox(height: 16),
                   _NeonButton(
@@ -110,6 +110,17 @@ class TutorialPage extends StatelessWidget {
                     iconSize: isMobile ? 23 : 32,
                     darkButton: true,
                     onTap: () => Navigator.pushNamed(context, '/login'),
+                  ),
+                  const SizedBox(height: 14),
+                  _NeonButton(
+                    text: 'Voltar ao início',
+                    icon: Icons.arrow_back,
+                    filled: false,
+                    fontSize: isMobile ? 22 : 28,
+                    iconSize: isMobile ? 23 : 32,
+                    darkButton: true,
+                    onTap: () =>
+                        Navigator.popUntil(context, ModalRoute.withName('/')),
                   ),
                 ],
               ),

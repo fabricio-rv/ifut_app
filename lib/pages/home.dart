@@ -99,7 +99,7 @@ class HomePage extends StatelessWidget {
                     icon: Icons.rocket_launch_outlined,
                     filled: true,
                     onTap: () {
-                      Navigator.pushNamed(context, '/cadastro');
+                      Navigator.pushNamed(context, '/tipo_cadastro');
                     },
                     fontSize: isMobile ? 23 : 28, // maior
                     iconSize: isMobile ? 30 : 38, // maior
@@ -172,7 +172,7 @@ class _HeroButtons extends StatelessWidget {
             icon: Icons.person_add_alt_1,
             filled: true,
             onTap: () {
-              Navigator.pushNamed(context, '/cadastro');
+              Navigator.pushNamed(context, '/tipo_cadastro');
             },
             fontSize: isMobile ? 19 : 24,
             iconSize: isMobile ? 22 : 28,

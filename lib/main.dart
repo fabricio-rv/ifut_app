@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'pages/home.dart'; // Sua tela inicial
-import 'pages/tutorial.dart'; // Sua tela de tutorial
+import 'pages/home.dart';
+import 'pages/tutorial.dart';
+import 'pages/tipo_cadastro.dart';
 
 void main() {
   runApp(const IFutApp());
@@ -8,18 +9,17 @@ void main() {
 
 class IFutApp extends StatelessWidget {
   const IFutApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'IFUT',
       theme: ThemeData.dark(),
-      // Defina qual tela vai abrir primeiro ("/" ou "/tutorial")
-      initialRoute: '/', // Troque para '/tutorial' se quiser testar a tutorial
+      initialRoute: '/', // sua home
       routes: {
         '/': (context) => const HomePage(),
         '/tutorial': (context) => const TutorialPage(),
+        '/tipo_cadastro': (context) => const TipoCadastroPage(),
       },
     );
   }
