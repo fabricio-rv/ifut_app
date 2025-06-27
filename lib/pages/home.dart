@@ -95,14 +95,14 @@ class HomePage extends StatelessWidget {
                 // Botão MAIOR
                 Center(
                   child: _NeonButton(
-                    text: 'COMEÇAR AGORA',
-                    icon: Icons.rocket_launch_outlined,
+                    text: 'CADASTRE-SE GRÁTIS',
+                    icon: Icons.person_add_alt_1,
                     filled: true,
                     onTap: () {
                       Navigator.pushNamed(context, '/tipo_cadastro');
                     },
-                    fontSize: isMobile ? 23 : 28, // maior
-                    iconSize: isMobile ? 30 : 38, // maior
+                    fontSize: isMobile ? 19 : 24, // maior
+                    iconSize: isMobile ? 22 : 28, // maior
                   ),
                 ),
               ],
@@ -168,11 +168,11 @@ class _HeroButtons extends StatelessWidget {
       children: [
         Center(
           child: _NeonButton(
-            text: 'CADASTRE-SE GRÁTIS',
-            icon: Icons.person_add_alt_1,
+            text: 'COMEÇAR AGORA',
+            icon: Icons.rocket_launch_outlined,
             filled: true,
             onTap: () {
-              Navigator.pushNamed(context, '/tipo_cadastro');
+              Navigator.pushNamed(context, '/login');
             },
             fontSize: isMobile ? 19 : 24,
             iconSize: isMobile ? 22 : 28,

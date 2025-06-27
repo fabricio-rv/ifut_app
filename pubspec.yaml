@@ -23,6 +23,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/logo.png
+    - assets/fundo_estadio.png
+    - assets/jogador_fundo.png
+    - assets/tecnico_fundo.png
+    - assets/torcedor_fundo.png
 
 flutter_native_splash:
   color: "#141A23"        # Cor de fundo (igual da sua logo, pode mudar!)
