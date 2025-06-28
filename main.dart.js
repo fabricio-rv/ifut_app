@@ -86041,7 +86041,7 @@ r=s.ax
 r.G$=q
 r.H$=0
 s.aD()},
-L(a){var s=this,r=null,q=A.bP(a,r,t.w).w.a.a<900,p=q?8:36,o=q?2:32,n=t.p,m=s.dx,l=s.dy,k=s.fr,j=s.cy,i=s.e.a,h=s.f.a,g=s.Q.a,f=s.as.a
+L(a){var s=this,r=null,q=A.bP(a,r,t.w).w.a.a<700,p=q?8:36,o=q?2:32,n=t.p,m=s.dx,l=s.dy,k=s.fr,j=s.cy,i=s.e.a,h=s.f.a,g=s.Q.a,f=s.as.a
 if(q){i=i.a
 h=h.a
 n=A.dO(A.b([A.aBG(g.a,h,1,j,i,50,k,f.a,m,l),B.lr,s.NV(!0)],n),B.a8,B.a_,B.a6)}else{i=i.a
