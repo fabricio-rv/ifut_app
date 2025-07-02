@@ -1,5 +1,6 @@
 // login.dart
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -158,8 +159,35 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   icon: const Icon(Icons.login, color: Colors.black),
                   label: const Text('ENTRAR'),
-                  onPressed: () {
-                    // Adicione sua lógica de login aqui
+                  onPressed: () async {
+                    // Pegue o e-mail e senha dos campos de texto
+                    final email = emailController.text.trim();
+                    final senha = senhaController.text;
+
+                    // Exemplo de loading
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) =>
+                          const Center(child: CircularProgressIndicator()),
+                    );
+
+                    // Tenta fazer login no Supabase
+                    final response = await Supabase.instance.client.auth
+                        .signInWithPassword(email: email, password: senha);
+
+                    // Fecha o loading
+                    Navigator.of(context).pop();
+
+                    // Se der certo, navega para tutorial
+                    if (response.session != null) {
+                      Navigator.pushNamed(context, '/tutorial');
+                    } else {
+                      // Se der erro, mostra snackbar
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Email ou senha inválidos')),
+                      );
+                    }
                   },
                 ),
               ),

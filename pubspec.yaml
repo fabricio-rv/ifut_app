@@ -13,6 +13,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_vector_icons: ^2.0.0
   flutter_native_splash: ^2.4.6
+  supabase_flutter: ^2.9.1
+  image_picker: ^1.0.7  # Use a versão mais recente disponível
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -27,6 +30,37 @@ flutter:
     - assets/jogador_fundo.png
     - assets/tecnico_fundo.png
     - assets/torcedor_fundo.png
+    - assets/escudo_sem_clube.png
+    - assets/card_fifa.png
+    - assets/default_avatar.png
+    - assets/bandeiras/ale.png
+    - assets/bandeiras/ago.png
+    - assets/bandeiras/arg.png
+    - assets/bandeiras/bol.png
+    - assets/bandeiras/bra.png
+    - assets/bandeiras/cpv.png
+    - assets/bandeiras/chl.png
+    - assets/bandeiras/chn.png
+    - assets/bandeiras/col.png
+    - assets/bandeiras/ecu.png
+    - assets/bandeiras/esp.png
+    - assets/bandeiras/eua.png
+    - assets/bandeiras/fra.png
+    - assets/bandeiras/hai.png
+    - assets/bandeiras/nld.png
+    - assets/bandeiras/ita.png
+    - assets/bandeiras/jpn.png
+    - assets/bandeiras/lbn.png
+    - assets/bandeiras/moz.png
+    - assets/bandeiras/pry.png
+    - assets/bandeiras/per.png
+    - assets/bandeiras/por.png
+    - assets/bandeiras/gbr.png
+    - assets/bandeiras/rus.png
+    - assets/bandeiras/sui.png
+    - assets/bandeiras/ukr.png
+    - assets/bandeiras/uru.png
+    - assets/bandeiras/ven.png
 
 flutter_native_splash:
   color: "#141A23"        # Cor de fundo (igual da sua logo, pode mudar!)
