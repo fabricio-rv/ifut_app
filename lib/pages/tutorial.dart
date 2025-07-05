@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'widgets/botao_voltar.dart';
+import 'widgets/botao_cadastrar.dart';
+import 'widgets/botao_login.dart';
 
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
@@ -8,125 +11,6 @@ class TutorialPage extends StatelessWidget {
     final width = MediaQuery.of(context).size.width;
     final isMobile = width < 700;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 16 : 48,
-            vertical: isMobile ? 18 : 44,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(height: isMobile ? 30 : 54),
-              // Título e ícone
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.play_circle_outline,
-                    size: isMobile ? 38 : 56,
-                    color: const Color(0xFF00FF00),
-                  ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Como Funciona o ',
-                            style: TextStyle(
-                              fontSize: isMobile ? 28 : 40,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.greenAccent.withOpacity(0.9),
-                                  blurRadius: 16,
-                                ),
-                              ],
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'FUT7',
-                            style: TextStyle(
-                              fontSize: isMobile ? 28 : 40,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFF00FF00),
-                              letterSpacing: 0.5,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.greenAccent.withOpacity(0.95),
-                                  blurRadius: 20,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              _TutorialSteps(isMobile: isMobile),
-              const SizedBox(height: 18),
-              Column(
-                children: [
-                  Text(
-                    'Pronto para começar?',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: isMobile ? 28 : 38,
-                      shadows: [
-                        Shadow(
-                          color: Colors.greenAccent.withOpacity(0.7),
-                          blurRadius: 22,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  _NeonButton(
-                    text: 'Cadastrar-se Agora',
-                    icon: Icons.rocket_launch_outlined,
-                    filled: true,
-                    fontSize: isMobile ? 22 : 28,
-                    iconSize: isMobile ? 23 : 32,
-                    onTap: () => Navigator.pushNamed(context, '/tipo_cadastro'),
-                  ),
-                  const SizedBox(height: 16),
-                  _NeonButton(
-                    text: 'Login',
-                    icon: Icons.login,
-                    filled: false,
-                    fontSize: isMobile ? 22 : 28,
-                    iconSize: isMobile ? 23 : 32,
-                    darkButton: true,
-                    onTap: () => Navigator.pushNamed(context, '/'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TutorialSteps extends StatelessWidget {
-  final bool isMobile;
-  const _TutorialSteps({required this.isMobile});
-
-  @override
-  Widget build(BuildContext context) {
     final steps = [
       (
         icon: Icons.sports_soccer_rounded,
@@ -238,44 +122,132 @@ class _TutorialSteps extends StatelessWidget {
       ),
     ];
 
-    if (isMobile) {
-      return Column(
-        children: steps
-            .map(
-              (s) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: _TutorialCard(
-                  icon: s.icon,
-                  title: s.title,
-                  desc: s.desc,
-                  isMobile: isMobile,
-                ),
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset("assets/fundo_estadio.png", fit: BoxFit.cover),
+          Container(color: Colors.black.withOpacity(0.40)),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 48,
+                vertical: isMobile ? 18 : 44,
               ),
-            )
-            .toList(),
-      );
-    } else {
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 32,
-          mainAxisSpacing: 32,
-          childAspectRatio: 2.6,
-        ),
-        itemCount: steps.length,
-        itemBuilder: (ctx, i) {
-          final s = steps[i];
-          return _TutorialCard(
-            icon: s.icon,
-            title: s.title,
-            desc: s.desc,
-            isMobile: isMobile,
-          );
-        },
-      );
-    }
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: isMobile ? 30 : 54),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.play_circle_outline,
+                        size: isMobile ? 38 : 56,
+                        color: const Color(0xFF00FF00),
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Como Funciona o ',
+                                style: TextStyle(
+                                  fontSize: isMobile ? 28 : 40,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.greenAccent.withOpacity(
+                                        0.9,
+                                      ),
+                                      blurRadius: 16,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'FUT7',
+                                style: TextStyle(
+                                  fontSize: isMobile ? 28 : 40,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF00FF00),
+                                  letterSpacing: 0.5,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.greenAccent.withOpacity(
+                                        0.95,
+                                      ),
+                                      blurRadius: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Cards ou passos do tutorial (pode manter seu widget customizado)
+                  Column(
+                    children: steps
+                        .map(
+                          (s) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: _TutorialCard(
+                              icon: s.icon,
+                              title: s.title,
+                              desc: s.desc,
+                              isMobile: isMobile,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Botão Cadastrar-se Agora
+                  BotaoCadastrar(
+                    isMobile: isMobile,
+                    icon: Icons.person_add,
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/tipo_cadastro'),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Botão Login
+                  BotaoLogin(
+                    isMobile: isMobile,
+                    onPressed: () => Navigator.pushNamed(context, '/'),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Botão Voltar padrão
+                  BotaoVoltar(
+                    isMobile: isMobile,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+
+                  SizedBox(height: isMobile ? 30 : 54),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.black,
+    );
   }
 }
 
@@ -344,75 +316,6 @@ class _TutorialCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _NeonButton extends StatelessWidget {
-  final String text;
-  final IconData icon;
-  final bool filled;
-  final VoidCallback onTap;
-  final double? fontSize;
-  final double? iconSize;
-  final bool darkButton;
-
-  const _NeonButton({
-    required this.text,
-    required this.icon,
-    required this.onTap,
-    this.filled = false,
-    this.fontSize,
-    this.iconSize,
-    this.darkButton = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 0),
-      child: Material(
-        color: filled
-            ? const Color(0xFF00FF00)
-            : (darkButton ? const Color(0xFF252525) : Colors.transparent),
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  color: filled ? Colors.black : Colors.white,
-                  size: iconSize ?? 32,
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  text,
-                  style: TextStyle(
-                    color: filled ? Colors.black : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: fontSize ?? 28,
-                    letterSpacing: 1.2,
-                    shadows: filled
-                        ? [
-                            Shadow(
-                              color: const Color(0xFF00FF00).withOpacity(0.13),
-                              blurRadius: 8,
-                            ),
-                          ]
-                        : [],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

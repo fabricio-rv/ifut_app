@@ -1,6 +1,64 @@
+// cadastro_tecnico_page.dart
 import 'package:flutter/material.dart';
-import 'components/nacionalidade.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+
+import 'controllers/tecnico_controller.dart';
+import 'controllers/experiencia_controller.dart';
+import 'controllers/disponibilidade_controller.dart';
+import 'controllers/calendario_controller.dart';
+
+import 'models/cadastro_tecnico_model.dart';
+import 'models/experiencia_model.dart';
+import 'models/disponibilidade_model.dart';
 import 'components/card_jogador_tecnico.dart';
+
+import 'widgets/campo_texto.dart';
+import 'widgets/campo_senha.dart';
+import 'widgets/campo_data.dart';
+import 'widgets/nacionalidade.dart';
+import 'widgets/dropdown_estado.dart';
+import 'widgets/dropdown_disponibilidade.dart';
+import 'widgets/dropdown_experiencia.dart';
+import 'widgets/niveis_treinador.dart';
+import 'widgets/estilo_tatico.dart';
+import 'widgets/botao_criar_conta.dart';
+import 'widgets/botao_voltar.dart';
+import 'widgets/titulo_secao.dart';
+import 'widgets/botao_login.dart';
+import 'widgets/calendario.dart';
+
+import 'utils/validadores.dart';
+
+class CadastroPageState extends State<CadastroTecnicoPage> {
+  final calendarioCtrl = CalendarioController();
+
+  @override
+  void dispose() {
+    calendarioCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CampoData(
+      controller: calendarioCtrl.dataCtrl,
+      label: 'Data de Nascimento',
+      icon: Icons.cake,
+      validator: (value) {
+        if (value == null || value.isEmpty) return 'Campo obrigatório';
+        return null;
+      },
+      onCalendario: () => calendarioCtrl.escolherData(context),
+    );
+  }
+}
+
+String? _nacionalidade = 'BRA';
+XFile? _imagemPerfil;
 
 class CadastroTecnicoPage extends StatefulWidget {
   const CadastroTecnicoPage({super.key});
@@ -10,650 +68,463 @@ class CadastroTecnicoPage extends StatefulWidget {
 }
 
 class _CadastroTecnicoPageState extends State<CadastroTecnicoPage> {
-  // Controllers
-  final _nomeCtrl = TextEditingController();
-  final _apelidoCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _telefoneCtrl = TextEditingController();
-  final _cidadeCtrl = TextEditingController();
-  final _bairroCtrl = TextEditingController();
-  final _cepCtrl = TextEditingController();
-  final String _fotoUrl = '';
+  final _formKey = GlobalKey<FormState>();
 
-  // Dropdown/Checkbox state
-  String? experiencia;
-  String? disponibilidade;
-  String? estado;
-  String? _nacionalidade = 'BRA';
-
-  // Estilo tático múltiplo
-  final List<String> estilosTaticos = [
-    "Ofensivo",
-    "Defensivo",
-    "Equilibrado",
-    "Pressão",
-    "Jogo apoiado",
-    "Contra-ataque",
-    "Marcaçāo baixa",
-  ];
-  final Set<String> estilosSelecionados = {};
-
-  // Níveis múltiplo
-  final List<String> niveis = ["Resenha", "Amador", "Avançado", "Competitivo"];
-  final Set<String> niveisSelecionados = {};
-
-  // Estados BR
-  final List<String> estados = [
-    "AC",
-    "AL",
-    "AP",
-    "AM",
-    "BA",
-    "CE",
-    "DF",
-    "ES",
-    "GO",
-    "MA",
-    "MT",
-    "MS",
-    "MG",
-    "PA",
-    "PB",
-    "PR",
-    "PE",
-    "PI",
-    "RJ",
-    "RN",
-    "RS",
-    "RO",
-    "RR",
-    "SC",
-    "SP",
-    "SE",
-    "TO",
-  ];
-
-  // Experiência e disponibilidade
-  final List<String> experienciaOpcoes = [
-    "Nenhuma",
-    "Menos de 1 ano",
-    "1-3 anos",
-    "3-5 anos",
-    "+5 anos",
-    "Só na resenha",
-  ];
-  final List<String> disponibilidadeOpcoes = [
-    "Muito baixa",
-    "Baixa",
-    "Média",
-    "Alta",
-    "Muito alta",
-  ];
-
-  // Validação simples
+  bool _mostrarSenha = false;
+  bool _mostrarConfSenha = false;
   bool _validando = false;
-
-  void _cadastrar() {
-    setState(() => _validando = true);
-    // Validação mínima
-    if (_nomeCtrl.text.trim().isEmpty ||
-        _apelidoCtrl.text.trim().isEmpty ||
-        _emailCtrl.text.trim().isEmpty ||
-        experiencia == null ||
-        disponibilidade == null ||
-        estado == null ||
-        _cidadeCtrl.text.trim().isEmpty ||
-        estilosSelecionados.isEmpty ||
-        niveisSelecionados.isEmpty) {
-      // Erro - campos obrigatórios
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Preencha todos os campos obrigatórios!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    // TODO: salvar cadastro
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Cadastro realizado com sucesso!"),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 700;
-    Widget tituloSecao(String texto, IconData icone, bool isMobile) {
-      return Row(
-        children: [
-          Icon(icone, color: const Color(0xFF00FF00), size: isMobile ? 22 : 26),
-          const SizedBox(width: 8),
-          Text(
-            texto,
-            style: TextStyle(
-              color: const Color(0xFF00FF00),
-              fontWeight: FontWeight.w900,
-              fontSize: isMobile ? 20 : 25,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ],
+
+    Future<void> _selecionarImagem(BuildContext context) async {
+      final ImagePicker picker = ImagePicker();
+      final XFile? imagemSelecionada = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
       );
+      if (imagemSelecionada != null) {
+        setState(() {
+          _imagemPerfil = imagemSelecionada;
+          // Atualize o controlador/foto do técnico aqui também, se quiser:
+          // tecnicoCtrl.setFotoPerfil(_imagemPerfil!.path);
+        });
+      }
     }
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 16 : 0,
-              vertical: 30,
-            ),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 520),
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // PRÉVIA DO CARD DO TÉCNICO - LOGO NO TOPO!
-                  Text(
-                    '',
-                    style: TextStyle(
-                      color: Color(0xFF00FF00),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  JogadorTecnicoCard(
-                    nome: _nomeCtrl.text,
-                    apelido: _apelidoCtrl.text,
-                    fotoUrl: _fotoUrl ?? '',
-                    nacionalidade: _nacionalidade ?? 'BRA',
-                    overall: 50, // ou valor fixo
-                    nivel: 0, // ou valor fixo
-                    posicaoPrincipal: 'TÉC',
-                    posicoesSecundarias: const [],
-                    peDominante: '',
-                    altura: 0,
-                    peso: 0,
-                    niveis: niveisSelecionados.toList(),
-                    badges: [],
-                    tipoPerfil: 'Técnico',
-                    estilosTaticos: estilosSelecionados.toList(), // <- estilos
-                    niveisQueTreina: niveisSelecionados
-                        .toList(), // <- níveis que treina
-                    experiencia: experiencia ?? '',
-                    disponibilidade: disponibilidade ?? '',
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Criar Conta Treinador',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isMobile ? 32 : 40,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.9,
-                            shadows: [
-                              Shadow(
-                                color: Colors.greenAccent.withOpacity(0.6),
-                                blurRadius: 13,
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 7),
-                        Text(
-                          'Junte-se à comunidade FUT7',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.82),
-                            fontSize: isMobile ? 18 : 20,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 28),
-                      ],
-                    ),
-                  ),
-                  _campoTexto(
-                    _nomeCtrl,
-                    "Nome",
-                    Icons.person,
-                    obrigatorio: true,
-                    erro: _validando && _nomeCtrl.text.trim().isEmpty,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Apelido
-                  _campoTexto(
-                    _apelidoCtrl,
-                    "Apelido",
-                    Icons.badge,
-                    obrigatorio: true,
-                    erro: _validando && _apelidoCtrl.text.trim().isEmpty,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // E-mail
-                  _campoTexto(
-                    _emailCtrl,
-                    "E-mail",
-                    Icons.email,
-                    obrigatorio: true,
-                    erro: _validando && _emailCtrl.text.trim().isEmpty,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Telefone
-                  _campoTexto(
-                    _telefoneCtrl,
-                    "Telefone",
-                    Icons.phone,
-                    obrigatorio: false,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Experiência (dropdown)
-                  _tituloCampo(
-                    "Experiência",
-                    obrigatorio: true,
-                    erro: _validando && experiencia == null,
-                  ),
-                  _dropdown(
-                    experienciaOpcoes,
-                    experiencia,
-                    (val) => setState(() => experiencia = val),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Disponibilidade (dropdown)
-                  _tituloCampo(
-                    "Disponibilidade",
-                    obrigatorio: true,
-                    erro: _validando && disponibilidade == null,
-                  ),
-                  _dropdown(
-                    disponibilidadeOpcoes,
-                    disponibilidade,
-                    (val) => setState(() => disponibilidade = val),
-                  ),
-                  const SizedBox(height: 18),
-
-                  tituloSecao("Localização", Icons.location_on, isMobile),
-                  const SizedBox(height: 16),
-                  // Nacionalidade (dropdown)
-                  DropdownButtonFormField<String>(
-                    value: _nacionalidade,
-                    items: nacionalidades
-                        .map(
-                          (n) => DropdownMenuItem<String>(
-                            value: n['sigla'],
-                            child: Row(
-                              children: [
-                                Image.asset(n['asset']!, width: 28, height: 19),
-                                const SizedBox(width: 10),
-                                Text(
-                                  n['nome']!,
-                                  style: const TextStyle(fontSize: 18),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  n['sigla']!,
-                                  style: const TextStyle(color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (sigla) =>
-                        setState(() => _nacionalidade = sigla),
-                    decoration: const InputDecoration(
-                      labelText: 'Nacionalidade',
-                      labelStyle: TextStyle(
-                        color: Color(0xFF00FF00),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                      filled: true,
-                      fillColor: Colors.black,
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color(0xFF00FF00),
-                          width: 1.8,
-                        ),
-                        borderRadius: BorderRadius.all(Radius.circular(11)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color(0xFF00FF00),
-                          width: 2.6,
-                        ),
-                        borderRadius: BorderRadius.all(Radius.circular(14)),
-                      ),
-                    ),
-                    dropdownColor: Colors.black,
-                    icon: const Icon(
-                      Icons.arrow_drop_down,
-                      color: Color(0xFF00FF00),
-                    ),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  // Estado (dropdown)
-                  // Estado (dropdown)
-                  _tituloCampo(
-                    "Estado",
-                    obrigatorio: true,
-                    erro: _validando && estado == null,
-                  ),
-                  _dropdown(
-                    estados, // lista
-                    estado, // selecionado
-                    (val) => setState(() => estado = val), // callback
-                  ),
-                  const SizedBox(height: 15),
-                  // Cidade
-                  _campoTexto(
-                    _cidadeCtrl,
-                    "Cidade",
-                    Icons.location_city,
-                    obrigatorio: true,
-                    erro: _validando && _cidadeCtrl.text.trim().isEmpty,
-                  ),
-                  const SizedBox(height: 15),
-                  _campoTexto(
-                    _cepCtrl,
-                    'CEP',
-                    Icons.map,
-                    keyboardType: TextInputType.number,
-                    hint: '00000-000',
-                  ),
-                  const SizedBox(height: 15),
-                  _campoTexto(
-                    _bairroCtrl,
-                    'Bairro',
-                    Icons.home_outlined,
-                    hint: "Nome do seu bairro",
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Estilo tático (checkbox)
-                  _tituloCampo(
-                    "Estilo Tático",
-                    obrigatorio: true,
-                    erro: _validando && estilosSelecionados.isEmpty,
-                  ),
-                  Wrap(
-                    spacing: 6,
-                    children: estilosTaticos
-                        .map(
-                          (e) => CustomBadge(
-                            text: e,
-                            bgColor: Color(0xFF00FF00),
-                            textColor: Colors.black,
-                            fontSize: 14,
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  // Badges de níveis que treina
-                  Wrap(
-                    spacing: 6,
-                    children: niveisSelecionados
-                        .toList()
-                        .map(
-                          (n) => CustomBadge(
-                            text: n,
-                            bgColor: Color(0xFF36C2FF),
-                            textColor: Colors.black,
-                            fontSize: 14,
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 34),
-
-                  // Botão cadastrar
-                  SizedBox(
-                    height: 55,
-                    child: ElevatedButton.icon(
-                      onPressed: _cadastrar,
-                      icon: const Icon(
-                        Icons.sports_soccer,
-                        color: Colors.black,
-                        size: 30,
-                      ),
-                      label: const Text(
-                        "Cadastrar Técnico",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 22,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00FF00),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        elevation: 4,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/'),
-                      child: Text(
-                        'Já tem uma conta? Fazer Login',
-                        style: TextStyle(
-                          color: const Color(0xFF00FF00),
-                          fontWeight: FontWeight.w600,
-                          fontSize: isMobile ? 19 : 21,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Botão de Voltar logo abaixo
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: Color(0xFF00FF00),
-                    ),
-                    label: const Text(
-                      "Voltar",
-                      style: TextStyle(
-                        color: Color(0xFF00FF00),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF00FF00),
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _tituloCampo(
-    String label, {
-    bool obrigatorio = false,
-    bool erro = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: erro ? Colors.red : const Color(0xFF00FF00),
-          fontWeight: FontWeight.w700,
-          fontSize: 18,
-        ),
-      ),
-    );
-  }
-
-  Widget _campoTexto(
-    TextEditingController ctrl,
-    String label,
-    IconData icone, {
-    bool obrigatorio = false,
-    bool erro = false,
-    String? hint,
-    TextInputType? keyboardType,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _tituloCampo(
-          "$label${obrigatorio ? "" : ""}",
-          obrigatorio: obrigatorio,
-          erro: erro,
-        ),
-        TextField(
-          controller: ctrl,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 19,
-            fontWeight: FontWeight.bold,
-          ),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icone, color: const Color(0xFF00FF00)),
-            filled: true,
-            fillColor: Colors.black,
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: erro ? Colors.red : const Color(0xFF00FF00),
-                width: 2.1,
-              ),
-              borderRadius: BorderRadius.circular(13),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: erro ? Colors.red : const Color(0xFF00FF00),
-                width: 2.3,
-              ),
-              borderRadius: BorderRadius.circular(13),
-            ),
-            hintText: label,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.39)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 20,
-            ),
-          ),
-        ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TecnicoController()),
+        ChangeNotifierProvider(create: (_) => ExperienciaController()),
+        ChangeNotifierProvider(create: (_) => DisponibilidadeController()),
       ],
-    );
-  }
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.black,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset("assets/fundo_estadio.png", fit: BoxFit.cover),
+            Container(color: Colors.black.withOpacity(0.40)),
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 16 : 0,
+                  vertical: 30,
+                ),
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 520),
+                    width: double.infinity,
+                    child:
+                        Consumer3<
+                          TecnicoController,
+                          ExperienciaController,
+                          DisponibilidadeController
+                        >(
+                          builder: (context, tecnicoCtrl, experienciaCtrl, dispoCtrl, _) {
+                            return Form(
+                              key: tecnicoCtrl.formKey,
+                              child: Column(
+                                crossAxisAlignment: isMobile
+                                    ? CrossAxisAlignment.center
+                                    : CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Cadastro de Técnico',
+                                    style: TextStyle(
+                                      fontSize: isMobile ? 32 : 40,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF00FF00),
+                                      letterSpacing: 1.1,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  JogadorTecnicoCard(
+                                    nome: tecnicoCtrl.nomeCtrl.text,
+                                    apelido: tecnicoCtrl.apelidoCtrl.text,
+                                    fotoUrl: tecnicoCtrl.fotoPerfil ?? '',
+                                    nacionalidade:
+                                        tecnicoCtrl.nacionalidade ?? 'BRA',
+                                    overall: 50,
+                                    nivel: 0,
+                                    posicaoPrincipal: 'TÉC',
+                                    posicoesSecundarias: const [],
+                                    peDominante: '',
+                                    altura: 0,
+                                    peso: 0,
+                                    niveis: tecnicoCtrl.niveisQueTreina
+                                        .toList(),
+                                    badges: const [],
+                                    tipoPerfil: 'Técnico',
+                                    estilosTaticos: tecnicoCtrl.estilosTaticos
+                                        .toList(),
+                                    niveisQueTreina: tecnicoCtrl.niveisQueTreina
+                                        .toList(),
+                                    experiencia:
+                                        experienciaCtrl
+                                            .experienciaSelecionada ??
+                                        '',
+                                    disponibilidade:
+                                        dispoCtrl.disponibilidadeSelecionada ??
+                                        '',
+                                    dataNascimento: tecnicoCtrl.dataNascimento,
+                                    estado: tecnicoCtrl.estado,
+                                    exibirEscolherFoto: true,
+                                    onSelecionarFoto: _selecionarImagem,
+                                  ),
 
-  Widget _dropdown(
-    List<String> opcoes,
-    String? value,
-    void Function(String?) onChanged,
-  ) {
-    return SizedBox(
-      height: 58,
-      child: DropdownButtonFormField<String>(
-        value: value,
-        items: opcoes
-            .map(
-              (v) => DropdownMenuItem(
-                value: v,
-                child: Text(
-                  v,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                                  const SizedBox(height: 16),
+
+                                  // Dados Pessoais
+                                  TituloSecao(
+                                    'Dados Pessoais',
+                                    Icons.account_circle,
+                                    isMobile,
+                                  ),
+
+                                  CampoTexto(
+                                    controller: tecnicoCtrl.nomeCtrl,
+                                    label: 'Nome Completo',
+                                    icon: Icons.person,
+                                    hint: "Ex: João Silva",
+                                    validator: Validadores.validaNome,
+                                    onChanged: tecnicoCtrl.setNome,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoTexto(
+                                    controller: tecnicoCtrl.apelidoCtrl,
+                                    label: 'Apelido',
+                                    icon: Icons.face,
+                                    hint: "Ex: Zico, Bebeto, etc.",
+                                    validator: Validadores.validaApelido,
+                                    onChanged: tecnicoCtrl.setApelido,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoTexto(
+                                    controller: tecnicoCtrl.emailCtrl,
+                                    label: 'Email',
+                                    icon: Icons.email,
+                                    hint: "Ex: seu@gmail.com",
+                                    validator: Validadores.validaEmail,
+                                    keyboardType: TextInputType.emailAddress,
+                                    onChanged: tecnicoCtrl.setEmail,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoData(
+                                    controller: tecnicoCtrl.dataNascimentoCtrl,
+                                    label: 'Data de Nascimento',
+                                    icon: Icons.cake,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Campo obrigatório';
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (_) {},
+                                    onCalendario: () async {
+                                      DateTime? picked = await showDatePicker(
+                                        context: context,
+                                        initialDate:
+                                            tecnicoCtrl.dataNascimento ??
+                                            DateTime(1980),
+                                        firstDate: DateTime(1900),
+                                        lastDate: DateTime.now(),
+                                        builder: (context, child) {
+                                          return Theme(
+                                            data: ThemeData.dark().copyWith(
+                                              colorScheme:
+                                                  const ColorScheme.dark(
+                                                    primary: Color(0xFF00FF00),
+                                                    onPrimary: Colors.black,
+                                                    surface: Colors.black,
+                                                    onSurface: Colors.white,
+                                                  ),
+                                            ),
+                                            child: child!,
+                                          );
+                                        },
+                                      );
+                                      if (picked != null) {
+                                        tecnicoCtrl.setDataNascimento(picked);
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoSenha(
+                                    controller: tecnicoCtrl.senhaCtrl,
+                                    label: 'Senha',
+                                    icon: Icons.lock,
+                                    mostrar: _mostrarSenha,
+                                    onMostrar: () => setState(
+                                      () => _mostrarSenha = !_mostrarSenha,
+                                    ),
+                                    validator: Validadores.validaSenha,
+                                    classificaForcaSenha:
+                                        Validadores.classificaForcaSenha,
+                                    corForcaSenha: Validadores.corForcaSenha,
+                                    onChanged: tecnicoCtrl.setSenha,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoSenha(
+                                    controller: tecnicoCtrl.confirmarSenhaCtrl,
+                                    label: 'Confirmar Senha',
+                                    icon: Icons.lock,
+                                    mostrar: _mostrarConfSenha,
+                                    onMostrar: () => setState(
+                                      () => _mostrarConfSenha =
+                                          !_mostrarConfSenha,
+                                    ),
+                                    validator: (v) =>
+                                        Validadores.validaConfirmarSenha(
+                                          v,
+                                          tecnicoCtrl.senhaCtrl.text,
+                                        ),
+                                    classificaForcaSenha: (senhaConfirm) {
+                                      if (senhaConfirm !=
+                                          tecnicoCtrl.senhaCtrl.text)
+                                        return "Senhas não conferem";
+                                      return Validadores.classificaForcaSenha(
+                                        senhaConfirm ?? '',
+                                      );
+                                    },
+                                    corForcaSenha: (senhaConfirm) {
+                                      if (senhaConfirm !=
+                                          tecnicoCtrl.senhaCtrl.text)
+                                        return Colors.red;
+                                      return Validadores.corForcaSenha(
+                                        senhaConfirm ?? '',
+                                      );
+                                    },
+                                    onChanged: tecnicoCtrl.setConfirmarSenha,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Localização
+                                  TituloSecao(
+                                    "Localização",
+                                    Icons.location_on,
+                                    isMobile,
+                                  ),
+                                  const SizedBox(height: 3),
+
+                                  NacionalidadeDropdown(
+                                    value: tecnicoCtrl.nacionalidade,
+                                    onChanged: tecnicoCtrl.setNacionalidade,
+                                  ),
+                                  const SizedBox(height: 20),
+
+                                  EstadoDropdown(
+                                    value: (tecnicoCtrl.estado?.isEmpty ?? true)
+                                        ? "RS"
+                                        : tecnicoCtrl.estado,
+                                    onChanged: tecnicoCtrl.setEstado,
+                                    label: 'Estado',
+                                    obrigatorio: true,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoTexto(
+                                    controller: tecnicoCtrl.cidadeCtrl,
+                                    label: 'Cidade',
+                                    icon: Icons.location_city,
+                                    hint: "Nome da sua cidade",
+                                    validator:
+                                        Validadores.validaCampoObrigatorio,
+                                    onChanged: tecnicoCtrl.setCidade,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoTexto(
+                                    controller: tecnicoCtrl.cepCtrl,
+                                    label: 'CEP',
+                                    icon: Icons.pin_drop,
+                                    keyboardType: TextInputType.number,
+                                    hint: '00000-000',
+                                    validator:
+                                        Validadores.validaCampoObrigatorio,
+                                    onChanged: tecnicoCtrl.setCep,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  CampoTexto(
+                                    controller: tecnicoCtrl.bairroCtrl,
+                                    label: 'Bairro',
+                                    icon: Icons.home_outlined,
+                                    hint: "Nome do seu bairro",
+                                    validator:
+                                        Validadores.validaCampoObrigatorio,
+                                    onChanged: tecnicoCtrl.setBairro,
+                                  ),
+                                  const SizedBox(height: 20),
+
+                                  TituloSecao(
+                                    "Informações Técnicas",
+                                    Icons.work_outline,
+                                    isMobile,
+                                  ),
+                                  const SizedBox(height: 3),
+
+                                  // Experiência
+                                  DropdownExperiencia(
+                                    experiencias: ExperienciaModel.exemplos
+                                        .map((e) => e.valor)
+                                        .toList(),
+                                    value: tecnicoCtrl.experienciaSelecionada,
+                                    onChanged: (val) {
+                                      tecnicoCtrl.setExperiencia(val);
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Disponibilidade
+                                  DropdownDisponibilidade(
+                                    disponiveis: DisponibilidadeModel.exemplos
+                                        .map((d) => d.valor)
+                                        .toList(),
+                                    value:
+                                        tecnicoCtrl.disponibilidadeSelecionada,
+                                    onChanged: (val) {
+                                      tecnicoCtrl.setDisponibilidade(
+                                        val,
+                                      ); // para atualizar a UI se necessário
+                                    },
+                                  ),
+                                  const SizedBox(height: 4),
+
+                                  // Níveis que Treina
+                                  TituloSecao(
+                                    "Níveis que Treina (Máx: 3)",
+                                    Icons.emoji_events,
+                                    isMobile,
+                                  ),
+                                  NiveisTreinadorSelector(
+                                    selecionados: tecnicoCtrl.niveisQueTreina,
+                                    onChanged: tecnicoCtrl.setNiveisQueTreina,
+                                  ),
+                                  const SizedBox(height: 8),
+
+                                  // Estilos Táticos
+                                  TituloSecao(
+                                    "Estilos Táticos (Máx: 3)",
+                                    Icons.track_changes,
+                                    isMobile,
+                                  ),
+                                  EstiloTaticoSelector(
+                                    selecionados: tecnicoCtrl.estilosTaticos,
+                                    onChanged: tecnicoCtrl.setEstilosTaticos,
+                                  ),
+                                  const SizedBox(height: 24),
+
+                                  // Dentro do widget de formulário técnico, no botão "Criar Conta" por exemplo:
+                                  BotaoCriarConta(
+                                    onPressed: () async {
+                                      // Copia todos os campos do formulário visual para o controller!
+                                      tecnicoCtrl.setNome(
+                                        tecnicoCtrl.nomeCtrl.text,
+                                      );
+                                      tecnicoCtrl.setApelido(
+                                        tecnicoCtrl.apelidoCtrl.text,
+                                      );
+                                      tecnicoCtrl.setEmail(
+                                        tecnicoCtrl.emailCtrl.text
+                                            .trim()
+                                            .toLowerCase(),
+                                      );
+
+                                      tecnicoCtrl.setSenha(
+                                        tecnicoCtrl.senhaCtrl.text,
+                                      );
+                                      tecnicoCtrl.setConfirmarSenha(
+                                        tecnicoCtrl.confirmarSenhaCtrl.text,
+                                      );
+                                      tecnicoCtrl.setDataNascimento(
+                                        tecnicoCtrl.dataNascimento,
+                                      );
+
+                                      tecnicoCtrl.setNacionalidade(
+                                        tecnicoCtrl.nacionalidade,
+                                      );
+                                      tecnicoCtrl.setEstado(
+                                        tecnicoCtrl.estado ?? '',
+                                      );
+                                      tecnicoCtrl.setCidade(
+                                        tecnicoCtrl.cidadeCtrl.text,
+                                      );
+                                      tecnicoCtrl.setBairro(
+                                        tecnicoCtrl.bairroCtrl.text,
+                                      );
+                                      tecnicoCtrl.setCep(
+                                        tecnicoCtrl.cepCtrl.text,
+                                      );
+
+                                      tecnicoCtrl.setExperiencia(
+                                        tecnicoCtrl.experienciaSelecionada,
+                                      );
+                                      tecnicoCtrl.setDisponibilidade(
+                                        tecnicoCtrl.disponibilidadeSelecionada,
+                                      );
+                                      tecnicoCtrl.setNiveisQueTreina(
+                                        tecnicoCtrl.niveisQueTreina,
+                                      );
+                                      tecnicoCtrl.setEstilosTaticos(
+                                        tecnicoCtrl.estilosTaticos,
+                                      );
+
+                                      // Agora sim, chama o método para cadastrar no backend
+                                      await tecnicoCtrl.cadastrar(context);
+
+                                      setState(
+                                        () => tecnicoCtrl.validando = true,
+                                      );
+                                    },
+                                    isMobile: isMobile,
+                                  ),
+
+                                  const SizedBox(height: 20),
+                                  BotaoLogin(
+                                    onPressed: () =>
+                                        Navigator.pushNamed(context, '/'),
+                                    isMobile: isMobile,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  BotaoVoltar(
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                  const SizedBox(height: 6),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                   ),
                 ),
               ),
-            )
-            .toList(),
-        onChanged: onChanged,
-        dropdownColor: const Color(0xFF00FF00),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.black,
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xFF00FF00), width: 2.1),
-            borderRadius: BorderRadius.circular(13),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xFF00FF00), width: 2.3),
-            borderRadius: BorderRadius.circular(13),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 8,
-          ),
+            ),
+          ],
         ),
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          fontSize: 17,
-        ),
-        icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00FF00)),
       ),
     );
   }
 
-  Widget _checkboxChip({
-    required String label,
-    required bool selected,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return ChoiceChip(
-      label: Text(
-        label,
+  Widget _tituloSecao(String titulo, bool isMobile) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: Text(
+        titulo,
         style: TextStyle(
-          color: selected ? Colors.black : Colors.white,
+          color: const Color(0xFF00FF00),
           fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontSize: isMobile ? 22 : 26,
         ),
       ),
-      selected: selected,
-      backgroundColor: Colors.black,
-      selectedColor: const Color(0xFF00FF00),
-      onSelected: onChanged,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: selected ? Colors.white : const Color(0xFF00FF00),
-          width: 2,
-        ),
-      ),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      elevation: selected ? 4 : 0,
-      shadowColor: Colors.greenAccent.withOpacity(0.2),
     );
   }
 }

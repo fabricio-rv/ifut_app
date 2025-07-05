@@ -1,228 +1,140 @@
-// login.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class LoginPage extends StatefulWidget {
+import 'controllers/login_controller.dart';
+import 'widgets/campo_texto.dart';
+import 'widgets/campo_senha.dart';
+import 'widgets/botao_criar_conta.dart';
+import 'widgets/botao_login.dart'; // botão para logar
+import 'widgets/botao_esqueceu_senha.dart';
+
+class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
-}
-
-class _LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController senhaController = TextEditingController();
-  bool senhaVisivel = false;
-
-  @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isMobile = width < 700;
+    final isMobile = MediaQuery.of(context).size.width < 700;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.account_circle,
-                size: isMobile ? 75 : 90,
-                color: const Color(0xFF00FF00),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Login',
-                style: TextStyle(
-                  fontSize: isMobile ? 36 : 48,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Entre na sua conta',
-                style: TextStyle(
-                  fontSize: isMobile ? 19 : 24,
-                  color: Colors.white.withOpacity(0.85),
-                ),
-              ),
-              const SizedBox(height: 38),
-              // Email
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 6, bottom: 4),
-                  child: Text(
-                    'Email',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: isMobile ? 19 : 21,
+    return ChangeNotifierProvider(
+      create: (_) => LoginController(),
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset("assets/fundo_estadio.png", fit: BoxFit.cover),
+            Container(color: Colors.black.withOpacity(0.40)),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 0),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxWidth: isMobile ? double.infinity : 1600,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 28,
+                      horizontal:
+                          8, // menos padding horizontal para aumentar largura útil
+                    ),
+                    child: Consumer<LoginController>(
+                      builder: (context, loginCtrl, _) => Form(
+                        key: loginCtrl.formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.account_circle,
+                              size: isMobile ? 75 : 90,
+                              color: const Color(0xFF00FF00),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: isMobile ? 36 : 48,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Entre na sua conta',
+                              style: TextStyle(
+                                fontSize: isMobile ? 19 : 24,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: isMobile ? double.infinity : 1600,
+                              child: CampoTexto(
+                                controller: loginCtrl.emailCtrl,
+                                label: 'Email',
+                                icon: Icons.email,
+                                hint: "Ex: seu@gmail.com",
+                                keyboardType: TextInputType.emailAddress,
+                                validator: loginCtrl.validateEmail,
+                                onChanged: loginCtrl.setEmail,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: isMobile ? double.infinity : 1600,
+                              child: CampoSenha(
+                                controller: loginCtrl.senhaCtrl,
+                                label: 'Senha',
+                                icon: Icons.lock,
+                                mostrar: loginCtrl.senhaVisivel,
+                                onMostrar: loginCtrl.toggleSenhaVisivel,
+                                validator: loginCtrl.validateSenha,
+                                onChanged: loginCtrl.setSenha,
+                                classificaForcaSenha: null,
+                                corForcaSenha: null,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            BotaoLogin(
+                              onPressed: () async {
+                                final success = await loginCtrl.login(context);
+                                if (success) {
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    '/tutorial',
+                                  );
+                                }
+                              },
+                              isMobile: isMobile,
+                            ),
+                            const SizedBox(height: 18),
+                            BotaoCriarConta(
+                              onPressed: () => Navigator.pushNamed(
+                                context,
+                                '/tipo_cadastro',
+                              ),
+                              isMobile: isMobile,
+                            ),
+                            const SizedBox(height: 18),
+                            BotaoEsqueceuSenha(
+                              onPressed: () => Navigator.pushNamed(
+                                context,
+                                '/esqueceu_senha',
+                              ),
+                              isMobile: isMobile,
+                            ),
+                            const SizedBox(height: 6),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'seu@gmail.com',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                  prefixIcon: const Icon(Icons.email, color: Color(0xFF00FF00)),
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Color(0xFF00FF00)),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: Color(0xFF00FF00),
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Senha
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 6, bottom: 4),
-                  child: Text(
-                    'Senha',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: isMobile ? 19 : 21,
-                    ),
-                  ),
-                ),
-              ),
-              TextField(
-                controller: senhaController,
-                obscureText: !senhaVisivel,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Sua senha',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                  prefixIcon: const Icon(Icons.lock, color: Color(0xFF00FF00)),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      senhaVisivel ? Icons.visibility : Icons.visibility_off,
-                      color: const Color(0xFF00FF00),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        senhaVisivel = !senhaVisivel;
-                      });
-                    },
-                  ),
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Color(0xFF00FF00)),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                      color: Color(0xFF00FF00),
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              // Botão ENTRAR
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00FF00),
-                    foregroundColor: Colors.black,
-                    shadowColor: const Color(0xFF00FF00),
-                    elevation: 12,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    textStyle: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  icon: const Icon(Icons.login, color: Colors.black),
-                  label: const Text('ENTRAR'),
-                  onPressed: () async {
-                    // Pegue o e-mail e senha dos campos de texto
-                    final email = emailController.text.trim();
-                    final senha = senhaController.text;
-
-                    // Exemplo de loading
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (_) =>
-                          const Center(child: CircularProgressIndicator()),
-                    );
-
-                    // Tenta fazer login no Supabase
-                    final response = await Supabase.instance.client.auth
-                        .signInWithPassword(email: email, password: senha);
-
-                    // Fecha o loading
-                    Navigator.of(context).pop();
-
-                    // Se der certo, navega para tutorial
-                    if (response.session != null) {
-                      Navigator.pushNamed(context, '/tutorial');
-                    } else {
-                      // Se der erro, mostra snackbar
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Email ou senha inválidos')),
-                      );
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Links
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/tipo_cadastro');
-                },
-                child: Text(
-                  'Não tem conta? Cadastre-se',
-                  style: TextStyle(
-                    color: const Color(0xFF00FF00),
-                    fontSize: isMobile ? 20 : 22,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/esqueceu_senha');
-                },
-                child: Text(
-                  'Esqueceu a senha?',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isMobile ? 18 : 20,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+          ],
         ),
+        backgroundColor: Colors.black, // opcional, mas stack já cobre tudo
       ),
     );
   }

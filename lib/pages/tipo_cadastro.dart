@@ -1,5 +1,7 @@
 // tipo_cadastro.dart
 import 'package:flutter/material.dart';
+import 'widgets/botao_tutorial.dart';
+import 'widgets/botao_voltar.dart';
 
 class TipoCadastroPage extends StatelessWidget {
   const TipoCadastroPage({super.key});
@@ -10,96 +12,106 @@ class TipoCadastroPage extends StatelessWidget {
     final isMobile = width < 700;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset("assets/fundo_estadio.png", fit: BoxFit.cover),
-          Container(color: Colors.black.withOpacity(0.80)),
+          // Diminui a opacidade para tirar aquela faixa escura cortando fundo
+          Container(color: Colors.black.withOpacity(0.40)),
+
           SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 8 : 40,
-                vertical: isMobile ? 10 : 28,
+                horizontal: isMobile ? 16 : 40,
+                vertical: isMobile ? 20 : 28,
               ),
-              child: Column(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.zero,
                 children: [
-                  SizedBox(height: isMobile ? 12 : 18),
-                  Text(
-                    'ESCOLHA SEU MODO',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.87),
-                      fontWeight: FontWeight.w900,
-                      fontSize: isMobile ? 30 : 50,
-                      letterSpacing: 2.5,
-                    ),
-                    textAlign: TextAlign.center,
+                  SizedBox(
+                    height: isMobile ? 4 : 8,
+                  ), // menos espaço acima do título
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6, // espaço horizontal entre texto e ícone
+                    runSpacing: 0, // espaço vertical entre linhas, aqui zero
+                    children: [
+                      Text(
+                        'ESCOLHA SEU MODO DE JOGO',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.87),
+                          fontWeight: FontWeight.w900,
+                          fontSize: isMobile ? 32 : 48,
+                          letterSpacing: 2.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Icon(
+                        Icons.sports_esports,
+                        color: Colors.white.withOpacity(0.87),
+                        size: isMobile ? 38 : 50,
+                      ),
+                    ],
                   ),
-                  SizedBox(height: isMobile ? 8 : 8),
-                  // Cards maiores, mais próximos do título
-                  Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      physics: const BouncingScrollPhysics(),
-                      children: [
-                        _TipoCardCustom(
-                          isMobile: isMobile,
-                          title: 'JOGADOR',
-                          backgroundImage: "assets/jogador_fundo.png",
-                          borderColor: Colors.white.withOpacity(0.10),
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/cadastro_jogador',
-                            arguments: "jogador",
-                          ),
-                        ),
-                        _TipoCardCustom(
-                          isMobile: isMobile,
-                          title: 'TÉCNICO',
-                          backgroundImage: "assets/tecnico_fundo.png",
-                          borderColor: Colors.white.withOpacity(0.10),
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/cadastro_tecnico',
-                            arguments: "tecnico",
-                          ),
-                        ),
-                        _TipoCardCustom(
-                          isMobile: isMobile,
-                          title: 'TORCEDOR',
-                          backgroundImage: "assets/torcedor_fundo.png",
-                          borderColor: Colors.white.withOpacity(0.10),
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/cadastro_torcedor',
-                            arguments: "torcedor",
-                          ),
-                        ),
-                        SizedBox(height: isMobile ? 8 : 14),
-                        // Botões Tutorial e Voltar
-                        _CustomNeonButton(
-                          text: 'Tutorial',
-                          filled: true,
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/tutorial'),
-                          fontSize: isMobile ? 18 : 26,
-                          icon: Icons.school,
-                          backgroundColor: const Color(0xFF00FF00),
-                          textColor: Colors.black,
-                        ),
-                        SizedBox(height: 10),
-                        _CustomNeonButton(
-                          text: 'Voltar',
-                          filled: false,
-                          onTap: () => Navigator.pop(context),
-                          fontSize: isMobile ? 18 : 26,
-                          icon: Icons.arrow_back,
-                          backgroundColor: const Color(0xFF252525),
-                          textColor: Colors.white,
-                        ),
-                        SizedBox(height: isMobile ? 12 : 20),
-                      ],
+                  SizedBox(
+                    height: isMobile ? 4 : 8,
+                  ), // menos espaço entre título e cards
+
+                  _TipoCardCustom(
+                    isMobile: isMobile,
+                    title: 'JOGADOR',
+                    backgroundImage: "assets/jogador_fundo.png",
+                    borderColor: const Color(0xFF00FF00), // Borda verde neon
+                    // borderColor: Colors.white.withOpacity(0.10), // Borda branca opcional
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/cadastro_jogador',
+                      arguments: "jogador",
                     ),
                   ),
+                  _TipoCardCustom(
+                    isMobile: isMobile,
+                    title: 'TÉCNICO',
+                    backgroundImage: "assets/tecnico_fundo.png",
+                    borderColor: const Color(0xFF00FF00), // Borda verde neon
+                    // borderColor: Colors.white.withOpacity(0.10), // Borda branca opcional
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/cadastro_tecnico',
+                      arguments: "tecnico",
+                    ),
+                  ),
+                  _TipoCardCustom(
+                    isMobile: isMobile,
+                    title: 'TORCEDOR',
+                    backgroundImage: "assets/torcedor_fundo.png",
+                    borderColor: const Color(0xFF00FF00), // Borda verde neon
+                    // borderColor: Colors.white.withOpacity(0.10), // Borda branca opcional
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      '/cadastro_torcedor',
+                      arguments: "torcedor",
+                    ),
+                  ),
+
+                  SizedBox(height: isMobile ? 8 : 14),
+
+                  BotaoTutorial(
+                    isMobile: isMobile,
+                    onPressed: () => Navigator.pushNamed(context, '/tutorial'),
+                  ),
+
+                  SizedBox(height: 16),
+
+                  BotaoVoltar(
+                    isMobile: isMobile,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+
+                  SizedBox(height: isMobile ? 12 : 20),
                 ],
               ),
             ),
@@ -183,7 +195,7 @@ class _TipoCardCustomState extends State<_TipoCardCustom>
               image: AssetImage(widget.backgroundImage),
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.10),
+                Colors.black.withOpacity(0.01),
                 BlendMode.darken,
               ),
             ),

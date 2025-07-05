@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+String exibeAlaComoSimples(String posicao) {
+  if (posicao == 'Ala D' || posicao == 'Ala E') return 'ALA';
+  return posicao;
+}
+
 // Classe utilitária para posição
 class PosicaoCampo {
   final String nome;
@@ -78,7 +83,9 @@ class CampinhoFUT7 extends StatelessWidget {
                 onTap: () => onSelect(nome),
                 child: CardPosicaoUT(
                   emoji: pos.emoji,
-                  nome: nome,
+                  nome: exibeAlaComoSimples(
+                    nome,
+                  ).toUpperCase(), // <-- Sempre mostra "ALA"
                   destaque: isPrincipal,
                   secundaria: isSecundaria,
                   width: cardWidth,

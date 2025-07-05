@@ -11,7 +11,7 @@ class BancoReservasFUT7 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reservas = [
-      {'emoji': '🧙🏽‍♂️', 'nome': 'Técnico'},
+      {'emoji': '🧙🏽‍♂️', 'nome': 'TÉC'},
       {'emoji': '💺', 'nome': 'SUB 1'},
       {'emoji': '💺', 'nome': 'SUB 2'},
       {'emoji': '💺', 'nome': 'SUB 3'},

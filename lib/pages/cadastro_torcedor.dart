@@ -1,4 +1,48 @@
+// pages/cadastro_torcedor.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
+import 'controllers/torcedor_controller.dart';
+import 'controllers/calendario_controller.dart';
+import 'models/cadastro_torcedor_model.dart';
+import 'widgets/nacionalidade.dart';
+import 'widgets/dropdown_estado.dart';
+import 'widgets/clubes_select.dart';
+import 'widgets/notificacoes.dart';
+import 'widgets/botao_criar_conta.dart';
+import 'widgets/botao_voltar.dart';
+import 'widgets/titulo_secao.dart';
+import 'widgets/campo_texto.dart';
+import 'widgets/campo_senha.dart';
+import 'widgets/campo_data.dart';
+import 'utils/validadores.dart';
+import 'widgets/botao_login.dart';
+import 'widgets/calendario.dart';
+
+class CadastroPageState extends State<CadastroTorcedorPage> {
+  final calendarioCtrl = CalendarioController();
+
+  @override
+  void dispose() {
+    calendarioCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CampoData(
+      controller: calendarioCtrl.dataCtrl,
+      label: 'Data de Nascimento',
+      icon: Icons.cake,
+      validator: (value) {
+        if (value == null || value.isEmpty) return 'Campo obrigatório';
+        return null;
+      },
+      onCalendario: () => calendarioCtrl.escolherData(context),
+    );
+  }
+}
 
 class CadastroTorcedorPage extends StatefulWidget {
   const CadastroTorcedorPage({super.key});
@@ -8,549 +52,331 @@ class CadastroTorcedorPage extends StatefulWidget {
 }
 
 class _CadastroTorcedorPageState extends State<CadastroTorcedorPage> {
-  final _nomeCtrl = TextEditingController();
-  final _apelidoCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _senhaCtrl = TextEditingController();
-  final _confirmaSenhaCtrl = TextEditingController();
-  final _telefoneCtrl = TextEditingController();
-  final _cidadeCtrl = TextEditingController();
-  final _bairroCtrl = TextEditingController();
-  final _dataNascCtrl = TextEditingController();
-  final _cepCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final torcedorCtrl = TorcedorController();
 
-  String? _estado;
-  String? _timeCoracao;
   bool _mostrarSenha = false;
   bool _mostrarConfSenha = false;
-
-  final List<String> _estados = [
-    "AC",
-    "AL",
-    "AP",
-    "AM",
-    "BA",
-    "CE",
-    "DF",
-    "ES",
-    "GO",
-    "MA",
-    "MT",
-    "MS",
-    "MG",
-    "PA",
-    "PB",
-    "PR",
-    "PE",
-    "PI",
-    "RJ",
-    "RN",
-    "RS",
-    "RO",
-    "RR",
-    "SC",
-    "SP",
-    "SE",
-    "TO",
-  ];
-
-  final List<String> _clubes = [
-    "Nenhum",
-    "Flamengo",
-    "Corinthians",
-    "Palmeiras",
-    "São Paulo",
-    "Grêmio",
-    "Atlético-MG",
-    "Vasco",
-    "Cruzeiro",
-    "Outro",
-  ];
-
-  final Map<String, bool> _notificacoes = {
-    "Jogos próximos": false,
-    "Promoções/sorteios": false,
-    "Atualizações do app": false,
-  };
-
   bool _validando = false;
-
-  void _cadastrar() {
-    setState(() => _validando = true);
-    if (_nomeCtrl.text.trim().isEmpty ||
-        _apelidoCtrl.text.trim().isEmpty ||
-        _emailCtrl.text.trim().isEmpty ||
-        _senhaCtrl.text.trim().isEmpty ||
-        _confirmaSenhaCtrl.text.trim().isEmpty ||
-        _senhaCtrl.text != _confirmaSenhaCtrl.text ||
-        _dataNascCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Preencha todos os campos obrigatórios!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    // TODO: salvar cadastro
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Cadastro realizado com sucesso!"),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 700;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 16 : 0,
-              vertical: 30,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+    return ChangeNotifierProvider(
+      create: (_) => TorcedorController(),
+      child: Consumer<TorcedorController>(
+        builder: (context, controller, _) {
+          return Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.black,
+            body: Stack(
+              fit: StackFit.expand,
               children: [
-                const SizedBox(height: 14),
-                Center(
-                  child: Text(
-                    "Cadastro de Torcedor FUT7",
-                    style: TextStyle(
-                      color: const Color(0xFF00FF00),
-                      fontWeight: FontWeight.w900,
-                      fontSize: isMobile ? 29 : 33,
-                      letterSpacing: 0.7,
-                      shadows: [
-                        Shadow(
-                          color: Colors.greenAccent.withOpacity(0.18),
-                          blurRadius: 10,
+                Image.asset("assets/fundo_estadio.png", fit: BoxFit.cover),
+                Container(color: Colors.black.withOpacity(0.40)),
+                SafeArea(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 16 : 0,
+                      vertical: 30,
+                    ),
+                    child: Center(
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 520),
+                        width: double.infinity,
+                        child: Form(
+                          key: controller.formKey,
+                          autovalidateMode: _validando
+                              ? AutovalidateMode.always
+                              : AutovalidateMode.disabled,
+                          child: Column(
+                            crossAxisAlignment: isMobile
+                                ? CrossAxisAlignment.center
+                                : CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 14),
+                              Center(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Cadastro de Torcedor',
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 30 : 36,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF00FF00),
+                                        letterSpacing: 1.1,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                  ],
+                                ),
+                              ),
+                              // Dados Pessoais
+                              TituloSecao(
+                                'Dados Pessoais',
+                                Icons.account_circle,
+                                isMobile,
+                              ),
+                              CampoTexto(
+                                controller: controller.nomeCtrl,
+                                label: "Nome",
+                                icon: Icons.person,
+                                hint: "Ex: João Silva",
+                                validator: controller.validarNome,
+                                onChanged: (value) =>
+                                    controller.nomeCtrl.text = value,
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoTexto(
+                                controller: controller.apelidoCtrl,
+                                label: "Apelido",
+                                icon: Icons.face,
+                                hint: "Nome de Exibição no App.",
+                                validator: controller.validarApelido,
+                                onChanged: (value) =>
+                                    controller.apelidoCtrl.text = value,
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoTexto(
+                                controller: controller.emailCtrl,
+                                label: "E-mail",
+                                icon: Icons.email,
+                                hint: "Ex: seu@gmail.com",
+                                keyboardType: TextInputType.emailAddress,
+                                validator: controller.validarEmail,
+                                onChanged: (value) =>
+                                    controller.emailCtrl.text = value,
+                              ),
+                              const SizedBox(height: 16),
+
+                              DropdownClubes(
+                                value: controller.timeCoracao,
+                                onChanged: (val) {
+                                  controller.setTimeCoracao(
+                                    val,
+                                  ); // para atualizar a UI se necessário
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoData(
+                                controller: controller.dataNascimentoCtrl,
+                                label: 'Data de Nascimento',
+                                icon: Icons.cake,
+                                validator: controller.validarDataNascimento,
+                                onChanged: controller.setDataNascimento,
+                                onCalendario: () async {
+                                  DateTime? picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime(1980),
+                                    firstDate: DateTime(1900),
+                                    lastDate: DateTime.now(),
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: ThemeData.dark().copyWith(
+                                          colorScheme: const ColorScheme.dark(
+                                            primary: Color(0xFF00FF00),
+                                            onPrimary: Colors.black,
+                                            surface: Colors.black,
+                                            onSurface: Colors.white,
+                                          ),
+                                        ),
+                                        child: child!,
+                                      );
+                                    },
+                                  );
+
+                                  if (picked != null) {
+                                    final formattedDate = DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(picked);
+                                    controller.dataNascimentoCtrl.text =
+                                        formattedDate;
+                                    controller.setDataNascimento(formattedDate);
+                                    // Se estiver em StatefulWidget, chame setState se necessário
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoSenha(
+                                controller: controller.senhaCtrl,
+                                label: 'Senha',
+                                icon: Icons.lock,
+                                mostrar: _mostrarSenha,
+                                onMostrar: () => setState(
+                                  () => _mostrarSenha = !_mostrarSenha,
+                                ),
+                                validator: controller.validarSenha,
+                                classificaForcaSenha:
+                                    Validadores.classificaForcaSenha,
+                                corForcaSenha: Validadores.corForcaSenha,
+                                onChanged: (v) => controller.setSenha(v),
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoSenha(
+                                controller: controller.confirmarSenhaCtrl,
+                                label: 'Confirmar Senha',
+                                icon: Icons.lock,
+                                mostrar: _mostrarConfSenha,
+                                onMostrar: () => setState(
+                                  () => _mostrarConfSenha = !_mostrarConfSenha,
+                                ),
+                                validator: (v) =>
+                                    controller.validarConfirmarSenha(v),
+                                classificaForcaSenha: (v) {
+                                  final senha = controller.senhaCtrl.text;
+                                  if (v != senha) return "Senhas não conferem";
+                                  return Validadores.classificaForcaSenha(
+                                    v ?? '',
+                                  );
+                                },
+                                corForcaSenha: (v) {
+                                  final senha = controller.senhaCtrl.text;
+                                  if (v != senha) return Colors.red;
+                                  return Validadores.corForcaSenha(v ?? '');
+                                },
+                                onChanged: (v) =>
+                                    controller.setConfirmarSenha(v),
+                              ),
+                              const SizedBox(height: 20),
+
+                              TituloSecao(
+                                "Localização",
+                                Icons.location_on,
+                                isMobile,
+                              ),
+                              const SizedBox(height: 3),
+
+                              NacionalidadeDropdown(
+                                value: controller.nacionalidade,
+                                onChanged: controller.setNacionalidade,
+                              ),
+                              const SizedBox(height: 16),
+
+                              EstadoDropdown(
+                                value: (controller.estado?.isEmpty ?? true)
+                                    ? "RS"
+                                    : controller.estado,
+                                onChanged: controller.setEstado,
+                                label: 'Estado',
+                                obrigatorio: true,
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoTexto(
+                                controller: controller.cidadeCtrl,
+                                label: "Cidade",
+                                icon: Icons.location_city,
+                                validator: controller.validarCidade,
+                                hint: "Nome da sua cidade",
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoTexto(
+                                controller: controller.cepCtrl,
+                                label: 'CEP',
+                                icon: Icons.map,
+                                keyboardType: TextInputType.number,
+                                hint: '00000-000',
+                              ),
+                              const SizedBox(height: 16),
+
+                              CampoTexto(
+                                controller: controller.bairroCtrl,
+                                label: 'Bairro',
+                                icon: Icons.home_outlined,
+                                hint: "Nome do seu bairro",
+                              ),
+                              const SizedBox(height: 20),
+
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  "Preferência de notificações:",
+                                  style: TextStyle(
+                                    color: const Color(0xFF00FF00),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 25,
+                                  ),
+                                ),
+                              ),
+
+                              NotificacoesWidget(
+                                notificacoes: controller.notificacoes,
+                                onChanged: controller.setNotificacao,
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              BotaoCriarConta(
+                                onPressed: () async {
+                                  // Copia todos os campos do formulário visual para o controller
+                                  controller.setNome(controller.nomeCtrl.text);
+                                  controller.setApelido(
+                                    controller.apelidoCtrl.text,
+                                  );
+                                  controller.setEmail(
+                                    controller.emailCtrl.text
+                                        .trim()
+                                        .toLowerCase(),
+                                  );
+                                  controller.setSenha(
+                                    controller.senhaCtrl.text,
+                                  );
+                                  controller.setConfirmarSenha(
+                                    controller.confirmarSenhaCtrl.text,
+                                  );
+                                  controller.setDataNascimento(
+                                    controller.dataNascimentoCtrl.text,
+                                  );
+                                  controller.setNacionalidade(
+                                    controller.nacionalidade,
+                                  );
+                                  controller.setEstado(controller.estado ?? '');
+                                  controller.setCidade(
+                                    controller.cidadeCtrl.text,
+                                  );
+                                  controller.setBairro(
+                                    controller.bairroCtrl.text,
+                                  );
+                                  controller.setCep(controller.cepCtrl.text);
+                                  // Agora sim, chama o método para cadastrar no backend
+                                  await controller.cadastrar(context);
+
+                                  setState(() => controller.validando = true);
+                                },
+                                isMobile: isMobile,
+                              ),
+                              const SizedBox(height: 20),
+                              BotaoLogin(
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/'),
+                                isMobile: isMobile,
+                              ),
+                              const SizedBox(height: 20),
+                              BotaoVoltar(
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              const SizedBox(height: 6),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-
-                // Nome
-                _campoTexto(
-                  _nomeCtrl,
-                  "Nome",
-                  Icons.person,
-                  obrigatorio: true,
-                  erro: _validando && _nomeCtrl.text.trim().isEmpty,
-                ),
-                const SizedBox(height: 20),
-
-                // Apelido
-                _campoTexto(
-                  _apelidoCtrl,
-                  "Apelido/Nome de exibição",
-                  Icons.face,
-                  obrigatorio: true,
-                  erro: _validando && _apelidoCtrl.text.trim().isEmpty,
-                ),
-                const SizedBox(height: 20),
-
-                // E-mail
-                _campoTexto(
-                  _emailCtrl,
-                  "E-mail",
-                  Icons.email,
-                  obrigatorio: true,
-                  erro: _validando && _emailCtrl.text.trim().isEmpty,
-                ),
-                const SizedBox(height: 20),
-
-                // Senha
-                _campoSenha(
-                  _senhaCtrl,
-                  "Senha",
-                  Icons.lock,
-                  obrigatorio: true,
-                  erro: _validando && _senhaCtrl.text.trim().isEmpty,
-                  mostrar: _mostrarSenha,
-                  onMostrar: () =>
-                      setState(() => _mostrarSenha = !_mostrarSenha),
-                ),
-                const SizedBox(height: 20),
-
-                // Confirmar Senha
-                _campoSenha(
-                  _confirmaSenhaCtrl,
-                  "Confirmar Senha",
-                  Icons.lock,
-                  obrigatorio: true,
-                  erro:
-                      _validando &&
-                      (_confirmaSenhaCtrl.text.trim().isEmpty ||
-                          _senhaCtrl.text != _confirmaSenhaCtrl.text),
-                  mostrar: _mostrarConfSenha,
-                  onMostrar: () =>
-                      setState(() => _mostrarConfSenha = !_mostrarConfSenha),
-                ),
-                const SizedBox(height: 20),
-
-                // Telefone
-                _campoTexto(
-                  _telefoneCtrl,
-                  "Telefone",
-                  Icons.phone,
-                  obrigatorio: false,
-                ),
-                const SizedBox(height: 20),
-
-                _campoTexto(
-                  _cepCtrl,
-                  'CEP',
-                  Icons.map,
-                  keyboardType: TextInputType.number,
-                  hint: '00000-000',
-                ),
-                const SizedBox(height: 16),
-
-                // Cidade
-                _campoTexto(
-                  _cidadeCtrl,
-                  "Cidade",
-                  Icons.location_city,
-                  obrigatorio: false,
-                ),
-                const SizedBox(height: 20),
-
-                // Bairro
-                _campoTexto(
-                  _bairroCtrl,
-                  "Bairro",
-                  Icons.home,
-                  obrigatorio: false,
-                ),
-                const SizedBox(height: 20),
-
-                // Estado
-                _dropdown(
-                  _estados,
-                  _estado,
-                  (val) => setState(() => _estado = val),
-                  "Estado",
-                ),
-                const SizedBox(height: 20),
-
-                // Time do coração
-                _dropdown(
-                  _clubes,
-                  _timeCoracao,
-                  (val) => setState(() => _timeCoracao = val),
-                  "Time do coração (opcional)",
-                ),
-                const SizedBox(height: 20),
-
-                // Data de nascimento
-                _campoTexto(
-                  _dataNascCtrl,
-                  "Data de nascimento",
-                  Icons.cake,
-                  obrigatorio: true,
-                  erro: _validando && _dataNascCtrl.text.trim().isEmpty,
-                  hint: "dd/mm/aaaa",
-                  keyboardType: TextInputType.datetime,
-                ),
-                const SizedBox(height: 20),
-
-                // Preferência de notificações
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    "Preferência de notificações:",
-                    style: TextStyle(
-                      color: const Color(0xFF00FF00),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-                ..._notificacoes.entries.map(
-                  (entry) => CheckboxListTile(
-                    title: Text(
-                      entry.key,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                      ),
-                    ),
-                    activeColor: const Color(0xFF00FF00),
-                    checkColor: Colors.black,
-                    value: entry.value,
-                    onChanged: (val) =>
-                        setState(() => _notificacoes[entry.key] = val ?? false),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                  ),
-                ),
-                const SizedBox(height: 34),
-
-                SizedBox(
-                  height: 55,
-                  child: ElevatedButton.icon(
-                    onPressed: _cadastrar,
-                    icon: const Icon(
-                      Icons.emoji_people,
-                      color: Colors.black,
-                      size: 30,
-                    ),
-                    label: const Text(
-                      "Cadastrar Torcedor",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00FF00),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      elevation: 4,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/'),
-                    child: Text(
-                      'Já tem uma conta? Fazer Login',
-                      style: TextStyle(
-                        color: const Color(0xFF00FF00),
-                        fontWeight: FontWeight.w600,
-                        fontSize: isMobile ? 19 : 21,
                       ),
                     ),
                   ),
                 ),
-                // Botão de Voltar logo abaixo
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFF00FF00)),
-                  label: const Text(
-                    "Voltar",
-                    style: TextStyle(
-                      color: Color(0xFF00FF00),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF00FF00),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 10),
               ],
             ),
-          ), // Center
-        ), // SingleChildScrollView
-      ), // SafeArea
-    ); // Scaffold
-  }
-
-  Widget _campoTexto(
-    TextEditingController ctrl,
-    String label,
-    IconData icone, {
-    bool obrigatorio = false,
-    bool erro = false,
-    String? hint,
-    TextInputType? keyboardType,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _tituloCampo(label, obrigatorio: obrigatorio, erro: erro),
-        TextField(
-          controller: ctrl,
-          keyboardType: keyboardType,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 19,
-            fontWeight: FontWeight.bold,
-          ),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icone, color: const Color(0xFF00FF00)),
-            filled: true,
-            fillColor: Colors.black,
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: erro ? Colors.red : const Color(0xFF00FF00),
-                width: 2.1,
-              ),
-              borderRadius: BorderRadius.circular(13),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: erro ? Colors.red : const Color(0xFF00FF00),
-                width: 2.3,
-              ),
-              borderRadius: BorderRadius.circular(13),
-            ),
-            hintText: hint ?? label,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.39)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 20,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _campoSenha(
-    TextEditingController ctrl,
-    String label,
-    IconData icone, {
-    required bool mostrar,
-    required VoidCallback onMostrar,
-    bool obrigatorio = false,
-    bool erro = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _tituloCampo(label, obrigatorio: obrigatorio, erro: erro),
-        TextField(
-          controller: ctrl,
-          obscureText: !mostrar,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 19,
-            fontWeight: FontWeight.bold,
-          ),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icone, color: const Color(0xFF00FF00)),
-            suffixIcon: IconButton(
-              icon: Icon(
-                mostrar ? Icons.visibility : Icons.visibility_off,
-                color: const Color(0xFF00FF00),
-              ),
-              onPressed: onMostrar,
-            ),
-            filled: true,
-            fillColor: Colors.black,
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: erro ? Colors.red : const Color(0xFF00FF00),
-                width: 2.1,
-              ),
-              borderRadius: BorderRadius.circular(13),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: erro ? Colors.red : const Color(0xFF00FF00),
-                width: 2.3,
-              ),
-              borderRadius: BorderRadius.circular(13),
-            ),
-            hintText: label,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.39)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 20,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _tituloCampo(
-    String label, {
-    bool obrigatorio = false,
-    bool erro = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: erro ? Colors.red : const Color(0xFF00FF00),
-          fontWeight: FontWeight.w700,
-          fontSize: 18,
-        ),
+          );
+        },
       ),
-    );
-  }
-
-  Widget _dropdown(
-    List<String> opcoes,
-    String? value,
-    void Function(String?) onChanged,
-    String label,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _tituloCampo(label),
-        SizedBox(
-          height: 58,
-          child: DropdownButtonFormField<String>(
-            value: value,
-            items: opcoes
-                .map(
-                  (v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(
-                      v,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: onChanged,
-            dropdownColor: const Color(0xFF00FF00),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.black,
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Color(0xFF00FF00),
-                  width: 2.1,
-                ),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Color(0xFF00FF00),
-                  width: 2.3,
-                ),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 8,
-              ),
-            ),
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 17,
-            ),
-            icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00FF00)),
-          ),
-        ),
-      ],
     );
   }
 }

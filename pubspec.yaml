@@ -14,8 +14,11 @@ dependencies:
   flutter_vector_icons: ^2.0.0
   flutter_native_splash: ^2.4.6
   supabase_flutter: ^2.9.1
-  image_picker: ^1.0.7  # Use a versão mais recente disponível
+  image_picker: ^1.1.2  # Use a versão mais recente disponível
   google_fonts: ^6.2.1
+  intl: ^0.19.0
+  provider: ^6.1.2
+  image_cropper: ^9.1.0
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +64,34 @@ flutter:
     - assets/bandeiras/ukr.png
     - assets/bandeiras/uru.png
     - assets/bandeiras/ven.png
+    - assets/estados/ac.png
+    - assets/estados/al.png
+    - assets/estados/ap.png
+    - assets/estados/am.png
+    - assets/estados/ba.png
+    - assets/estados/ce.png
+    - assets/estados/df.png
+    - assets/estados/es.png
+    - assets/estados/go.png
+    - assets/estados/ma.png
+    - assets/estados/mt.png
+    - assets/estados/ms.png
+    - assets/estados/mg.png
+    - assets/estados/pa.png
+    - assets/estados/pb.png
+    - assets/estados/pr.png
+    - assets/estados/pe.png
+    - assets/estados/pi.png
+    - assets/estados/rj.png
+    - assets/estados/rn.png
+    - assets/estados/rs.png
+    - assets/estados/ro.png   
+    - assets/estados/rr.png
+    - assets/estados/sc.png
+    - assets/estados/sp.png
+    - assets/estados/se.png
+    - assets/estados/to.png
+
 
 flutter_native_splash:
   color: "#141A23"        # Cor de fundo (igual da sua logo, pode mudar!)

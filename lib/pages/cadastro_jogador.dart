@@ -1,10 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:image_cropper/image_cropper.dart';
+
+import 'package:provider/provider.dart';
+import 'controllers/dados_pessoais_controller.dart';
+import 'controllers/caracteristicas_fisicas_controller.dart';
+import 'controllers/localizacao_controller.dart';
+import 'controllers/jogador_controller.dart';
+import 'controllers/calendario_controller.dart';
+
 import 'components/card_jogador_tecnico.dart';
 import 'components/campinho_fut7.dart';
-import 'components/nacionalidade.dart';
 import 'components/banco_reservas.dart';
+
+import 'widgets/campo_texto.dart';
+import 'widgets/campo_senha.dart';
+import 'widgets/campo_data.dart';
+import 'widgets/dropdown_estado.dart';
+import 'widgets/nacionalidade.dart';
+import 'widgets/botao_pe.dart';
+import 'widgets/titulo_secao.dart';
+import 'widgets/niveis_jogador.dart';
+import 'widgets/botao_voltar.dart';
+import 'widgets/botao_login.dart';
+import 'widgets/botao_criar_conta.dart';
+import 'widgets/calendario.dart';
+
+import 'utils/validadores.dart';
+
+import 'models/cadastro_jogador_model.dart';
+import 'models/dados_pessoais_model.dart';
+import 'models/caracteristicas_fisicas_model.dart';
+import 'models/localizacao_model.dart';
+import 'models/jogo_model.dart';
+
+class CadastroPageState extends State<CadastroJogadorPage> {
+  final calendarioCtrl = CalendarioController();
+
+  @override
+  void dispose() {
+    calendarioCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CampoData(
+      controller: calendarioCtrl.dataCtrl,
+      label: 'Data de Nascimento',
+      icon: Icons.cake,
+      validator: (value) {
+        if (value == null || value.isEmpty) return 'Campo obrigatório';
+        return null;
+      },
+      onCalendario: () => calendarioCtrl.escolherData(context),
+    );
+  }
+}
 
 class CadastroJogadorPage extends StatefulWidget {
   const CadastroJogadorPage({super.key});
@@ -14,75 +74,87 @@ class CadastroJogadorPage extends StatefulWidget {
 }
 
 class _CadastroJogadorPageState extends State<CadastroJogadorPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _nomeCtrl = TextEditingController();
-  final _apelidoCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _telCtrl = TextEditingController();
-  final _senhaCtrl = TextEditingController();
-  final _confirmaSenhaCtrl = TextEditingController();
-  final _nascCtrl = TextEditingController();
-  final _alturaCtrl = TextEditingController();
-  final _pesoCtrl = TextEditingController();
-  final _cepCtrl = TextEditingController();
-  final _bairroCtrl = TextEditingController();
-  final _cidadeCtrl = TextEditingController();
-  final List<String> estilosTaticos = [];
-  final List<String> niveisQueTreina = [];
-  final String experiencia = '';
-  final String disponibilidade = '';
-
   File? fotoPerfil;
+  File? _imagemPerfil;
+  final picker = ImagePicker();
+
+  Future<File?> cropImagem(File file) async {
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: file.path,
+      compressQuality: 90,
+      aspectRatio: const CropAspectRatio(
+        ratioX: 3,
+        ratioY: 4,
+      ), // 3:4 vertical tipo FIFA
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Ajuste sua foto',
+          toolbarColor: Colors.black,
+          toolbarWidgetColor: Colors.greenAccent,
+          lockAspectRatio: true, // trava no 3:4!
+        ),
+        IOSUiSettings(
+          title: 'Ajuste sua foto',
+          aspectRatioLockEnabled: true,
+          aspectRatioPickerButtonHidden: true,
+        ),
+      ],
+    );
+    if (cropped != null) return File(cropped.path);
+    return null;
+  }
+
+  Future<void> _selecionarImagem(BuildContext context) async {
+    final XFile? pickedFile = await picker.pickImage(
+      source: await _showEscolhaFonte(context),
+      imageQuality: 60, // boa qualidade, reduz o tamanho
+    );
+    if (pickedFile != null) {
+      File original = File(pickedFile.path);
+
+      // Abre cropper para usuário ajustar/cortar melhor
+      File? cropFinal = await cropImagem(original);
+
+      setState(() {
+        _imagemPerfil = cropFinal ?? original;
+      });
+    }
+  }
+
+  Future<ImageSource> _showEscolhaFonte(BuildContext context) async {
+    final result = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.camera_alt, color: Colors.greenAccent),
+            title: Text('Tirar foto'),
+            onTap: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+          ListTile(
+            leading: Icon(Icons.photo_library, color: Colors.greenAccent),
+            title: Text('Escolher da galeria'),
+            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+        ],
+      ),
+    );
+    return result ?? ImageSource.gallery; // padrão
+  }
+
+  String _fotoUrlParaCard() {
+    // Se selecionou uma imagem local, mostra ela, senão retorna ''
+    if (_imagemPerfil != null) return _imagemPerfil!.path;
+    return '';
+  }
+
   Future<void> pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
       setState(() => fotoPerfil = File(picked.path));
     }
   }
-
-  String? _estado;
-  final List<String> _estados = [
-    "AC",
-    "AL",
-    "AP",
-    "AM",
-    "BA",
-    "CE",
-    "DF",
-    "ES",
-    "GO",
-    "MA",
-    "MT",
-    "MS",
-    "MG",
-    "PA",
-    "PB",
-    "PR",
-    "PE",
-    "PI",
-    "RJ",
-    "RN",
-    "RS",
-    "RO",
-    "RR",
-    "SC",
-    "SP",
-    "SE",
-    "TO",
-  ];
-
-  final List<String> _niveisJogo = [
-    "Pereba",
-    "Resenha",
-    "Casual",
-    "Intermediário",
-    "Avançado",
-    "Competidor",
-    "Semi-Amador",
-    "Amador",
-    "Ex-profissional",
-  ];
-  final Set<String> _niveisSelecionados = {};
 
   final posicoesCampo = [
     PosicaoCampo("Pivô", "🥅"),
@@ -94,727 +166,530 @@ class _CadastroJogadorPageState extends State<CadastroJogadorPage> {
     PosicaoCampo("Goleiro", "🧤"),
   ];
 
-  String? posicaoPrincipal = '';
-  Set<String> posicoesSecundarias = {};
-  String? _peDominante;
-  bool _mostrarSenha = false;
-  bool _mostrarConfSenha = false;
-  bool _validando = false;
-  final String _fotoUrl = ''; // Foto de perfil (pode começar vazio)
-  String? _nacionalidade = 'BRA'; // Nacionalidade padrão (ou vazio)
-  final String _escudoClube = '';
-  final Set<String> _badgesSelecionadas = {};
-
-  @override
-  void dispose() {
-    _nomeCtrl.dispose();
-    _apelidoCtrl.dispose();
-    _emailCtrl.dispose();
-    _telCtrl.dispose();
-    _senhaCtrl.dispose();
-    _confirmaSenhaCtrl.dispose();
-    _nascCtrl.dispose();
-    _alturaCtrl.dispose();
-    _pesoCtrl.dispose();
-    _cepCtrl.dispose();
-    _bairroCtrl.dispose();
-    super.dispose();
-  }
-
-  void _cadastrar() {
-    setState(() => _validando = true);
-    // Validação mínima
-    if (_nomeCtrl.text.trim().isEmpty ||
-        _apelidoCtrl.text.trim().isEmpty ||
-        _emailCtrl.text.trim().isEmpty ||
-        _senhaCtrl.text.trim().isEmpty ||
-        _confirmaSenhaCtrl.text.trim().isEmpty ||
-        _senhaCtrl.text != _confirmaSenhaCtrl.text ||
-        _nascCtrl.text.trim().isEmpty ||
-        _estado == null ||
-        _cidadeCtrl.text.trim().isEmpty
-    // ...adicione outros obrigatórios
-    ) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Preencha todos os campos obrigatórios!"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    // TODO: salvar cadastro...
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Cadastro realizado com sucesso!"),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 700;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16 : 0,
-                vertical: 30,
-              ),
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 520),
-                width: double.infinity,
-                padding: const EdgeInsets.all(0),
-                child: isMobile
-                    ? Column(
-                        children: [
-                          JogadorTecnicoCard(
-                            nome: _nomeCtrl.text,
-                            apelido: _apelidoCtrl.text,
-                            fotoUrl: _fotoUrl ?? '', // ou '' se não usar foto
-                            nacionalidade: _nacionalidade ?? '',
-                            overall: 50, // pode atualizar conforme seu app
-                            nivel: 0,
-                            posicaoPrincipal: posicaoPrincipal ?? '',
-                            posicoesSecundarias: posicoesSecundarias.toList(),
-                            peDominante: _peDominante ?? '',
-                            altura: int.tryParse(_alturaCtrl.text) ?? 0,
-                            peso: int.tryParse(_pesoCtrl.text) ?? 0,
-                            escudoClube:
-                                _escudoClube ??
-                                '', // ou passe null/'' se sem clube
-                            tipoPerfil: 'Jogador', // ou 'Técnico'
-                            niveis: _niveisSelecionados.toList(),
-                            badges: _badgesSelecionadas.toList(),
-                            estilosTaticos: const [],
-                            niveisQueTreina: const [],
-                            experiencia: '',
-                            disponibilidade: '',
-                          ),
-                          const SizedBox(height: 18),
-                          _formularioCadastro(isMobile),
-                        ],
-                      )
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: Align(
-                              alignment: Alignment.topCenter,
-                              child: JogadorTecnicoCard(
-                                nome: _nomeCtrl.text,
-                                apelido: _apelidoCtrl.text,
-                                fotoUrl: _fotoUrl ?? '',
-                                nacionalidade: _nacionalidade ?? '',
-                                overall: 50,
-                                nivel: 0,
-                                posicaoPrincipal: posicaoPrincipal ?? '',
-                                posicoesSecundarias: posicoesSecundarias
-                                    .toList(),
-                                peDominante: _peDominante ?? '',
-                                altura: int.tryParse(_alturaCtrl.text) ?? 0,
-                                peso: int.tryParse(_pesoCtrl.text) ?? 0,
-                                escudoClube: _escudoClube ?? '',
-                                tipoPerfil: 'Jogador', // ou 'Técnico'
-                                niveis: _niveisSelecionados.toList(),
-                                badges: _badgesSelecionadas.toList(),
-                                estilosTaticos: const [],
-                                niveisQueTreina: const [],
-                                experiencia: '',
-                                disponibilidade: '',
-                              ),
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DadosPessoaisController()),
+        ChangeNotifierProvider(
+          create: (_) => CaracteristicasFisicasController(),
+        ),
+        ChangeNotifierProvider(create: (_) => LocalizacaoController()),
+        ChangeNotifierProvider(
+          create: (_) => JogadorController(),
+        ), // Added JogadorController provider
+      ],
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.black,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset("assets/fundo_estadio.png", fit: BoxFit.cover),
+            Container(color: Colors.black.withOpacity(0.40)),
+            SafeArea(
+              child: SingleChildScrollView(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 16 : 0,
+                      vertical: 30,
+                    ),
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      width: double.infinity,
+                      child: isMobile
+                          ? Column(
+                              children: [
+                                Text(
+                                  'Cadastro de Jogador',
+                                  style: TextStyle(
+                                    fontSize: isMobile ? 32 : 40,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF00FF00),
+                                    letterSpacing: 1.1,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 20),
+                                Consumer3<
+                                  DadosPessoaisController,
+                                  CaracteristicasFisicasController,
+                                  LocalizacaoController
+                                >(
+                                  builder:
+                                      (
+                                        context,
+                                        dadosPessoais,
+                                        caracteristicas,
+                                        localizacao,
+                                        _,
+                                      ) => Consumer<JogadorController>(
+                                        builder: (context, jogadorCtrl, _) =>
+                                            JogadorTecnicoCard(
+                                              nome: dadosPessoais.nome,
+                                              apelido: dadosPessoais.apelido,
+                                              fotoUrl:
+                                                  _imagemPerfil?.path ?? '',
+                                              nacionalidade:
+                                                  localizacao.nacionalidade ??
+                                                  '',
+                                              overall: 50,
+                                              nivel: 0,
+                                              posicaoPrincipal:
+                                                  jogadorCtrl
+                                                      .posicaoPrincipal ??
+                                                  '',
+                                              posicoesSecundarias: jogadorCtrl
+                                                  .posicoesSecundarias
+                                                  .toList(),
+                                              peDominante:
+                                                  caracteristicas.peDominante ??
+                                                  '',
+                                              altura:
+                                                  double.tryParse(
+                                                    caracteristicas.altura ??
+                                                        '0',
+                                                  ) ??
+                                                  0,
+                                              peso:
+                                                  double.tryParse(
+                                                    caracteristicas.peso ?? '0',
+                                                  ) ??
+                                                  0,
+                                              escudoClube: '',
+                                              tipoPerfil: 'Jogador',
+                                              niveis: jogadorCtrl.niveis
+                                                  .toList(),
+                                              badges: jogadorCtrl
+                                                  .badgesSelecionadas
+                                                  .toList(),
+                                              estilosTaticos: const [],
+                                              niveisQueTreina: const [],
+                                              experiencia: '',
+                                              disponibilidade: '',
+                                              exibirEscolherFoto: true,
+                                              onSelecionarFoto:
+                                                  _selecionarImagem,
+                                              dataNascimento: dadosPessoais
+                                                  .calendarioController
+                                                  .dataDateTime, // <-- ADICIONE!
+                                              estado: localizacao
+                                                  .estado, // <-- ADICIONE se quiser bandeira do estado depois!
+                                            ),
+                                      ),
+                                ),
+                                const SizedBox(height: 18),
+                                _formularioCadastro(isMobile),
+                              ],
+                            )
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 5,
+                                  child: Align(
+                                    alignment: Alignment.topCenter,
+                                    child:
+                                        Consumer3<
+                                          DadosPessoaisController,
+                                          CaracteristicasFisicasController,
+                                          LocalizacaoController
+                                        >(
+                                          builder:
+                                              (
+                                                context,
+                                                dadosPessoais,
+                                                caracteristicas,
+                                                localizacao,
+                                                _,
+                                              ) => Consumer<JogadorController>(
+                                                builder:
+                                                    (
+                                                      context,
+                                                      jogadorCtrl,
+                                                      _,
+                                                    ) => JogadorTecnicoCard(
+                                                      nome: dadosPessoais.nome,
+                                                      apelido:
+                                                          dadosPessoais.apelido,
+                                                      fotoUrl: '',
+                                                      nacionalidade:
+                                                          localizacao
+                                                              .nacionalidade ??
+                                                          '',
+                                                      overall: 50,
+                                                      nivel: 0,
+                                                      posicaoPrincipal:
+                                                          jogadorCtrl
+                                                              .posicaoPrincipal ??
+                                                          '',
+                                                      posicoesSecundarias:
+                                                          jogadorCtrl
+                                                              .posicoesSecundarias
+                                                              .toList(),
+                                                      peDominante:
+                                                          caracteristicas
+                                                              .peDominante ??
+                                                          '',
+                                                      altura:
+                                                          double.tryParse(
+                                                            caracteristicas
+                                                                    .altura ??
+                                                                '0',
+                                                          ) ??
+                                                          0,
+                                                      peso:
+                                                          double.tryParse(
+                                                            caracteristicas
+                                                                    .peso ??
+                                                                '0',
+                                                          ) ??
+                                                          0,
+                                                      escudoClube: '',
+                                                      tipoPerfil: 'Jogador',
+                                                      niveis: jogadorCtrl.niveis
+                                                          .toList(),
+                                                      badges: jogadorCtrl
+                                                          .badgesSelecionadas
+                                                          .toList(),
+                                                      estilosTaticos: const [],
+                                                      niveisQueTreina: const [],
+                                                      experiencia: '',
+                                                      disponibilidade: '',
+                                                    ),
+                                              ),
+                                        ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 8,
+                                  child: _formularioCadastro(isMobile),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 40),
-                          Expanded(
-                            flex: 8,
-                            child: _formularioCadastro(isMobile),
-                          ),
-                        ],
-                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
   Widget _formularioCadastro(bool isMobile) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: isMobile
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Criar Conta Jogador',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: isMobile ? 32 : 40,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.9,
-              shadows: [
-                Shadow(
-                  color: Colors.greenAccent.withOpacity(0.6),
-                  blurRadius: 13,
-                ),
-              ],
-            ),
-            textAlign: isMobile ? TextAlign.center : TextAlign.left,
-          ),
-          const SizedBox(height: 7),
-          Text(
-            'Junte-se à comunidade FUT7',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.82),
-              fontSize: isMobile ? 18 : 20,
-            ),
-            textAlign: isMobile ? TextAlign.center : TextAlign.left,
-          ),
-          const SizedBox(height: 28),
-
-          _tituloSecao("Dados Pessoais", Icons.account_circle, isMobile),
-          _campoTexto(_nomeCtrl, 'Nome Completo', Icons.person),
-          const SizedBox(height: 16),
-          _campoTexto(
-            _apelidoCtrl,
-            'Apelido',
-            Icons.face_retouching_natural,
-            hint: "Ex: Zico, Bebeto...",
-          ),
-          const SizedBox(height: 16),
-          _campoTexto(_emailCtrl, 'Email', Icons.email, hint: 'seu@gmail.com'),
-          const SizedBox(height: 16),
-          _campoTexto(
-            _telCtrl,
-            'Telefone',
-            Icons.phone_android,
-            keyboardType: TextInputType.phone,
-            hint: '(11) 99999-9999',
-          ),
-          const SizedBox(height: 16),
-          _campoTexto(
-            _nascCtrl,
-            'Data de Nascimento',
-            Icons.cake,
-            hint: "dd/mm/aaaa",
-            keyboardType: TextInputType.datetime,
-          ),
-          const SizedBox(height: 16),
-          _campoSenha(
-            _senhaCtrl,
-            'Senha',
-            Icons.lock,
-            mostrar: _mostrarSenha,
-            onMostrar: () => setState(() => _mostrarSenha = !_mostrarSenha),
-          ),
-          const SizedBox(height: 16),
-          _campoSenha(
-            _confirmaSenhaCtrl,
-            'Confirmar Senha',
-            Icons.lock,
-            mostrar: _mostrarConfSenha,
-            onMostrar: () =>
-                setState(() => _mostrarConfSenha = !_mostrarConfSenha),
-          ),
-          const SizedBox(height: 30),
-
-          _tituloSecao(
-            "Características Físicas",
-            Icons.fitness_center,
-            isMobile,
-          ),
-          _campoTexto(
-            _alturaCtrl,
-            'Altura (cm)',
-            Icons.height,
-            hint: '175',
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
-          _campoTexto(
-            _pesoCtrl,
-            'Peso (kg)',
-            Icons.monitor_weight,
-            hint: '70.5',
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 24),
-
-          // Pé Dominante
-          _tituloSecao("Pé Dominante", Icons.directions_walk, isMobile),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Consumer4<
+      DadosPessoaisController,
+      CaracteristicasFisicasController,
+      LocalizacaoController,
+      JogadorController
+    >(
+      builder: (context, dadosPessoais, caracteristicas, localizacao, jogadorCtrl, _) {
+        return Form(
+          key: jogadorCtrl.formKey,
+          child: Column(
+            crossAxisAlignment: isMobile
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
             children: [
-              _botaoPe("Destro", Icons.directions_run),
+              TituloSecao('Dados Pessoais', Icons.account_circle, isMobile),
+              CampoTexto(
+                controller: dadosPessoais.nomeCtrl,
+                label: 'Nome Completo',
+                icon: Icons.person,
+                hint: "Ex: João Silva",
+                validator: Validadores.validaNome,
+                onChanged: dadosPessoais.setNome,
+              ),
+              const SizedBox(height: 16),
+              CampoTexto(
+                controller: dadosPessoais.apelidoCtrl,
+                label: 'Apelido',
+                icon: Icons.face,
+                hint: "Ex: Zico, Bebeto, etc.",
+                validator: Validadores.validaApelido,
+                onChanged: dadosPessoais.setApelido,
+              ),
+              const SizedBox(height: 16),
+              CampoTexto(
+                controller: dadosPessoais.emailCtrl,
+                label: 'Email',
+                icon: Icons.email,
+                hint: "Ex: seu@gmail.com",
+                validator: Validadores.validaEmail,
+                onChanged: dadosPessoais.setEmail,
+              ),
+              const SizedBox(height: 16),
+              CampoData(
+                controller: dadosPessoais.dataNascimentoCtrl,
+                label: 'Data de Nascimento',
+                icon: Icons.cake,
+                validator: Validadores.validaNascimento,
+                onChanged: dadosPessoais.setDataNascimento,
+                onCalendario: () async {
+                  await dadosPessoais.calendarioController.escolherData(
+                    context,
+                  );
+                  // Atualiza a data no controller de dados pessoais após seleção
+                  dadosPessoais.setDataNascimento(
+                    dadosPessoais.calendarioController.data,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              CampoSenha(
+                controller: dadosPessoais.senhaCtrl,
+                label: 'Senha',
+                icon: Icons.lock,
+                mostrar: jogadorCtrl.mostrarSenha,
+                onMostrar: jogadorCtrl.toggleMostrarSenha,
+                validator: Validadores.validaSenha,
+                classificaForcaSenha: Validadores.classificaForcaSenha,
+                corForcaSenha: Validadores.corForcaSenha,
+                onChanged: dadosPessoais.setSenha,
+              ),
+              const SizedBox(height: 16),
+              CampoSenha(
+                controller: dadosPessoais.confirmarSenhaCtrl,
+                label: 'Confirmar Senha',
+                icon: Icons.lock,
+                mostrar: jogadorCtrl.mostrarConfSenha,
+                onMostrar: jogadorCtrl.toggleMostrarConfSenha,
+                validator: (v) =>
+                    Validadores.validaConfirmarSenha(v, dadosPessoais.senha),
+                classificaForcaSenha: (v) {
+                  final senha = dadosPessoais.senha;
+                  if (v != senha) return "Senhas não conferem";
+                  return Validadores.classificaForcaSenha(v ?? '');
+                },
+                corForcaSenha: (v) {
+                  final senha = dadosPessoais.senha;
+                  if (v != senha) return Colors.red;
+                  return Validadores.corForcaSenha(v ?? '');
+                },
+                onChanged: dadosPessoais.setConfirmarSenha,
+              ),
               const SizedBox(height: 12),
-              _botaoPe("Canhoto", Icons.directions_walk),
+
+              TituloSecao(
+                "Características Físicas",
+                Icons.fitness_center,
+                isMobile,
+              ),
+              CampoTexto(
+                controller: caracteristicas.alturaCtrl,
+                label: 'Altura (cm)',
+                icon: Icons.height,
+                hint: "Ex: 175",
+                keyboardType: TextInputType.number,
+                validator: Validadores.validaAltura,
+                onChanged: caracteristicas.setAltura,
+              ),
+              const SizedBox(height: 16),
+              CampoTexto(
+                controller: caracteristicas.pesoCtrl,
+                label: 'Peso (kg)',
+                icon: Icons.monitor_weight,
+                hint: "Ex: 70.5",
+                keyboardType: TextInputType.number,
+                validator: Validadores.validaPeso,
+                onChanged: caracteristicas.setPeso,
+              ),
               const SizedBox(height: 12),
-              _botaoPe("Ambidestro", Icons.accessibility_new),
+
+              TituloSecao("Pé Dominante", Icons.directions_walk, isMobile),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  BotaoPe(
+                    texto: "Destro",
+                    icone: Icons.directions_run,
+                    selecionado: caracteristicas.peDominante == "Destro",
+                    onPressed: () => caracteristicas.setPeDominante("Destro"),
+                  ),
+                  const SizedBox(height: 12),
+                  BotaoPe(
+                    texto: "Canhoto",
+                    icone: Icons.directions_walk,
+                    selecionado: caracteristicas.peDominante == "Canhoto",
+                    onPressed: () => caracteristicas.setPeDominante("Canhoto"),
+                  ),
+                  const SizedBox(height: 12),
+                  BotaoPe(
+                    texto: "Ambidestro",
+                    icone: Icons.accessibility_new,
+                    selecionado: caracteristicas.peDominante == "Ambidestro",
+                    onPressed: () =>
+                        caracteristicas.setPeDominante("Ambidestro"),
+                  ),
+                ],
+              ),
+              if (jogadorCtrl.validando &&
+                  (caracteristicas.peDominante == null ||
+                      caracteristicas.peDominante!.isEmpty))
+                const Padding(
+                  padding: EdgeInsets.only(top: 4, left: 5),
+                  child: Text(
+                    "Escolha o pé dominante",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              const SizedBox(height: 12),
+
+              TituloSecao("Localização", Icons.location_on, isMobile),
+              const SizedBox(height: 3),
+              NacionalidadeDropdown(
+                value: localizacao.nacionalidade,
+                onChanged: (String? value) {
+                  if (value != null) {
+                    localizacao.setNacionalidade(value);
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+              EstadoDropdown(
+                value: (localizacao.estado?.isEmpty ?? true)
+                    ? "RS"
+                    : localizacao.estado,
+                onChanged: localizacao.setEstado,
+                label: 'Estado',
+                obrigatorio: true,
+              ),
+              const SizedBox(height: 16),
+              CampoTexto(
+                controller: localizacao.cidadeCtrl,
+                label: "Cidade",
+                icon: Icons.location_city,
+                obrigatorio: true,
+                hint: "Nome da sua cidade",
+                validator: Validadores.validaCampoObrigatorio,
+                onChanged: localizacao.setCidade,
+              ),
+              const SizedBox(height: 16),
+              CampoTexto(
+                controller: localizacao.cepCtrl,
+                label: 'CEP',
+                icon: Icons.pin_drop,
+                keyboardType: TextInputType.number,
+                hint: '00000-000',
+                validator: Validadores.validaCampoObrigatorio,
+                onChanged: localizacao.setCep,
+              ),
+              const SizedBox(height: 16),
+              CampoTexto(
+                controller: localizacao.bairroCtrl,
+                label: 'Bairro',
+                icon: Icons.home_outlined,
+                hint: "Nome do seu bairro",
+                validator: Validadores.validaCampoObrigatorio,
+                onChanged: localizacao.setBairro,
+              ),
+              const SizedBox(height: 12),
+
+              TituloSecao(
+                "Níveis de Jogo (Máx: 3)",
+                Icons.emoji_events,
+                isMobile,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: NiveisJogadorSelector(
+                  selecionados: jogadorCtrl.niveis, // Set<String>
+                  onChanged: jogadorCtrl.setNiveis,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TituloSecao("Posições Preferidas", Icons.sports, isMobile),
+              Text(
+                "Selecione 1 principal (clique) e até 3 secundárias (duplo clique)",
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.86),
+                  fontSize: isMobile ? 17 : 19,
+                ),
+              ),
+              const SizedBox(height: 20),
+              CampinhoFUT7(
+                posicoes: posicoesCampo,
+                principal: jogadorCtrl.posicaoPrincipal,
+                secundarias: jogadorCtrl.posicoesSecundarias,
+                onSelect: (nome) {
+                  if (jogadorCtrl.posicaoPrincipal == null ||
+                      jogadorCtrl.posicaoPrincipal!.isEmpty) {
+                    jogadorCtrl.setPosicaoPrincipal(nome);
+                  } else if (jogadorCtrl.posicaoPrincipal == nome) {
+                    jogadorCtrl.setPosicaoPrincipal('');
+                  } else {
+                    final setSec = Set<String>.from(
+                      jogadorCtrl.posicoesSecundarias,
+                    );
+                    if (setSec.contains(nome)) {
+                      setSec.remove(nome);
+                    } else if (setSec.length < 3) {
+                      setSec.add(nome);
+                    }
+                    jogadorCtrl.setPosicoesSecundarias(setSec);
+                  }
+                },
+              ),
+              BancoReservasFUT7(
+                onSelect: (idx) {
+                  setState(() {});
+                },
+                selecionado: null,
+              ),
+              const SizedBox(height: 12),
+
+              BotaoCriarConta(
+                onPressed: () async {
+                  // Copia todos os campos do formulário visual para o controller!
+                  jogadorCtrl.setNome(dadosPessoais.nomeCtrl.text);
+                  jogadorCtrl.setApelido(dadosPessoais.apelidoCtrl.text);
+                  jogadorCtrl.setEmail(
+                    dadosPessoais.emailCtrl.text.trim().toLowerCase(),
+                  );
+
+                  jogadorCtrl.setSenha(dadosPessoais.senhaCtrl.text);
+                  jogadorCtrl.setConfirmarSenha(
+                    dadosPessoais.confirmarSenhaCtrl.text,
+                  );
+                  jogadorCtrl.setDataNascimento(
+                    dadosPessoais.dataNascimentoCtrl.text,
+                  );
+
+                  jogadorCtrl.setAltura(caracteristicas.alturaCtrl.text);
+                  jogadorCtrl.setPeso(caracteristicas.pesoCtrl.text);
+                  jogadorCtrl.setPeDominante(caracteristicas.peDominante);
+
+                  jogadorCtrl.setNacionalidade(localizacao.nacionalidade);
+                  jogadorCtrl.setEstado(localizacao.estado);
+                  jogadorCtrl.setCidade(localizacao.cidadeCtrl.text);
+                  jogadorCtrl.setBairro(localizacao.bairroCtrl.text);
+                  jogadorCtrl.setCep(localizacao.cepCtrl.text);
+
+                  // Agora sim!
+                  await jogadorCtrl.cadastrar(context);
+
+                  setState(() => jogadorCtrl.validando = true);
+                },
+                isMobile: isMobile,
+              ),
+
+              const SizedBox(height: 20),
+              BotaoLogin(
+                onPressed: () => Navigator.pushNamed(context, '/'),
+                isMobile: isMobile,
+              ),
+              const SizedBox(height: 20),
+              BotaoVoltar(onPressed: () => Navigator.pop(context)),
+              const SizedBox(height: 6),
             ],
           ),
-          const SizedBox(height: 24),
-
-          _tituloSecao("Localização", Icons.location_on, isMobile),
-          // Nacionalidade (dropdown)
-          DropdownButtonFormField<String>(
-            value: _nacionalidade,
-            items: nacionalidades
-                .map(
-                  (n) => DropdownMenuItem<String>(
-                    value: n['sigla'],
-                    child: Row(
-                      children: [
-                        Image.asset(n['asset']!, width: 28, height: 19),
-                        const SizedBox(width: 10),
-                        Text(n['nome']!, style: const TextStyle(fontSize: 18)),
-                        const SizedBox(width: 10),
-                        Text(
-                          n['sigla']!,
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: (sigla) => setState(() => _nacionalidade = sigla),
-            decoration: const InputDecoration(
-              labelText: 'Nacionalidade',
-              labelStyle: TextStyle(
-                color: Color(0xFF00FF00),
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-              filled: true,
-              fillColor: Colors.black,
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF00FF00), width: 1.8),
-                borderRadius: BorderRadius.all(Radius.circular(11)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF00FF00), width: 2.6),
-                borderRadius: BorderRadius.all(Radius.circular(14)),
-              ),
-            ),
-            dropdownColor: Colors.black,
-            icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00FF00)),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Estado (dropdown)
-          _dropdown(
-            _estados,
-            _estado,
-            (val) => setState(() => _estado = val),
-            "Estado",
-          ),
-          const SizedBox(height: 16),
-          // Cidade
-          _campoTexto(
-            _cidadeCtrl,
-            "Cidade",
-            Icons.location_city,
-            obrigatorio: true,
-            erro: _validando && _cidadeCtrl.text.trim().isEmpty,
-          ),
-          const SizedBox(height: 16),
-          _campoTexto(
-            _cepCtrl,
-            'CEP',
-            Icons.map,
-            keyboardType: TextInputType.number,
-            hint: '00000-000',
-          ),
-          const SizedBox(height: 16),
-          _campoTexto(
-            _bairroCtrl,
-            'Bairro',
-            Icons.home_outlined,
-            hint: "Nome do seu bairro",
-          ),
-          const SizedBox(height: 24),
-
-          _tituloSecao("Nível de Jogo", Icons.emoji_events, isMobile),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Wrap(
-              spacing: 16,
-              runSpacing: 14,
-              children: _niveisJogo
-                  .map(
-                    (nivel) => FilterChip(
-                      label: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 8,
-                        ),
-                        child: Text(
-                          nivel,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 19,
-                          ),
-                        ),
-                      ),
-                      labelStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      selected: _niveisSelecionados.contains(nivel),
-                      selectedColor: Colors.green.withOpacity(0.6),
-                      checkmarkColor: Colors.black,
-                      backgroundColor: Colors.black,
-                      side: const BorderSide(color: Color(0xFF00FF00)),
-                      onSelected: (sel) => setState(() {
-                        sel
-                            ? _niveisSelecionados.add(nivel)
-                            : _niveisSelecionados.remove(nivel);
-                      }),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-          const SizedBox(height: 28),
-
-          _tituloSecao("Posições Preferidas", Icons.sports, isMobile),
-          const SizedBox(height: 2),
-          Text(
-            "Selecione posição principal (clique) e secundária (duplo clique)",
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.86),
-              fontSize: isMobile ? 17 : 19,
-            ),
-          ),
-          const SizedBox(height: 20),
-          CampinhoFUT7(
-            posicoes: posicoesCampo,
-            principal: posicaoPrincipal,
-            secundarias: posicoesSecundarias,
-            onSelect: (nome) {
-              setState(() {
-                if (posicaoPrincipal == null || posicaoPrincipal!.isEmpty) {
-                  posicaoPrincipal = nome;
-                } else if (posicaoPrincipal == nome) {
-                  posicaoPrincipal = '';
-                } else {
-                  if (posicoesSecundarias.contains(nome)) {
-                    posicoesSecundarias.remove(nome);
-                  } else {
-                    posicoesSecundarias.add(nome);
-                  }
-                }
-              });
-            },
-          ),
-          BancoReservasFUT7(
-            onSelect: (idx) {
-              setState(() {
-                // lógica de seleção se quiser, exemplo:
-                // reservaSelecionada = idx;
-              });
-            },
-            selecionado:
-                null, // ou o index do selecionado se quiser destacar algum
-          ),
-          const SizedBox(height: 28),
-
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00FF00),
-                foregroundColor: Colors.black,
-                textStyle: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: isMobile ? 22 : 26,
-                  letterSpacing: 1.1,
-                ),
-                minimumSize: const Size(0, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                shadowColor: Colors.greenAccent,
-                elevation: 11,
-              ),
-              icon: const Icon(Icons.person_add_alt_1, size: 36),
-              label: const Text('CRIAR CONTA'),
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Cadastro enviado! (Simulado)'),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-          const SizedBox(height: 20),
-          Center(
-            child: TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/'),
-              child: Text(
-                'Já tem uma conta? Fazer Login',
-                style: TextStyle(
-                  color: const Color(0xFF00FF00),
-                  fontWeight: FontWeight.w600,
-                  fontSize: isMobile ? 19 : 21,
-                ),
-              ),
-            ),
-          ),
-          // Botão de Voltar logo abaixo
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF00FF00)),
-            label: const Text(
-              "Voltar",
-              style: TextStyle(
-                color: Color(0xFF00FF00),
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF00FF00),
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              textStyle: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-  Widget _tituloSecao(String texto, IconData icone, bool mobile) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      child: Row(
-        children: [
-          Icon(icone, color: const Color(0xFF00FF00), size: 28),
-          const SizedBox(width: 9),
-          Text(
-            texto,
-            style: TextStyle(
-              color: const Color(0xFF00FF00),
-              fontSize: mobile ? 21 : 24,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _campoTexto(
-    TextEditingController ctrl,
-    String label,
-    IconData icon, {
-    String? hint,
-    TextInputType? keyboardType,
-    String Function(String?)? validator,
-    bool obrigatorio = false,
-    bool erro = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: TextFormField(
-        controller: ctrl,
-        keyboardType: keyboardType,
-        validator: validator,
-        style: const TextStyle(color: Colors.white, fontSize: 21),
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: const Color(0xFF00FF00)),
-          labelText: label,
-          labelStyle: const TextStyle(
-            color: Color(0xFF00FF00),
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-          hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white38, fontSize: 17),
-          filled: true,
-          fillColor: Colors.black,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 22,
-            horizontal: 18,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xFF00FF00), width: 1.8),
-            borderRadius: BorderRadius.circular(11),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xFF00FF00), width: 2.6),
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        onChanged: (_) => setState(() {}),
-      ),
-    );
-  }
-
-  Widget _dropdown(
-    List<String> opcoes,
-    String? value,
-    void Function(String?) onChanged,
-    String label,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _tituloCampo(label),
-        SizedBox(
-          height: 58,
-          child: DropdownButtonFormField<String>(
-            value: value,
-            items: opcoes
-                .map(
-                  (v) => DropdownMenuItem(
-                    value: v,
-                    child: Text(
-                      v,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: onChanged,
-            dropdownColor: const Color(0xFF00FF00),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.black,
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Color(0xFF00FF00),
-                  width: 2.1,
-                ),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(
-                  color: Color(0xFF00FF00),
-                  width: 2.3,
-                ),
-                borderRadius: BorderRadius.circular(13),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 8,
-              ),
-            ),
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 17,
-            ),
-            icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00FF00)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _tituloCampo(String label, {bool erro = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: erro ? Colors.red : const Color(0xFF00FF00),
-          fontWeight: FontWeight.w700,
-          fontSize: 18,
-        ),
-      ),
-    );
-  }
-
-  Widget _campoSenha(
-    TextEditingController ctrl,
-    String label,
-    IconData icon, {
-    required bool mostrar,
-    required VoidCallback onMostrar,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: TextFormField(
-        controller: ctrl,
-        obscureText: !mostrar,
-        style: const TextStyle(color: Colors.white, fontSize: 21),
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: const Color(0xFF00FF00)),
-          labelText: label,
-          labelStyle: const TextStyle(
-            color: Color(0xFF00FF00),
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-          filled: true,
-          fillColor: Colors.black,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 22,
-            horizontal: 18,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xFF00FF00), width: 1.8),
-            borderRadius: BorderRadius.circular(11),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xFF00FF00), width: 2.6),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          suffixIcon: IconButton(
-            icon: Icon(
-              mostrar ? Icons.visibility : Icons.visibility_off,
-              color: const Color(0xFF00FF00),
-            ),
-            onPressed: onMostrar,
-          ),
-        ),
-        onChanged: (_) => setState(() {}),
-      ),
-    );
-  }
-
-  Widget _botaoPe(String texto, IconData icone) {
-    final selected = _peDominante == texto;
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: selected ? Colors.black : const Color(0xFF00FF00),
-        backgroundColor: selected
-            ? const Color(0xFF00FF00)
-            : Colors.transparent,
-        side: BorderSide(
-          color: selected ? const Color(0xFF00FF00) : Colors.green,
-          width: 2.2,
-        ),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
-      ),
-      icon: Icon(icone, size: 27),
-      label: Text(texto, textAlign: TextAlign.center),
-      onPressed: () => setState(() => _peDominante = texto),
+        );
+      },
     );
   }
 }
