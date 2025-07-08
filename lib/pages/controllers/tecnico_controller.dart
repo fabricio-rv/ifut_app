@@ -13,7 +13,7 @@ class TecnicoController extends ChangeNotifier {
   final confirmarSenhaCtrl = TextEditingController();
   String? fotoPerfil;
   String? nacionalidade = 'BRA';
-  String? estado;
+  String? estado = 'RS';
   DateTime? dataNascimento;
   final cidadeCtrl = TextEditingController();
   final bairroCtrl = TextEditingController();
@@ -184,7 +184,7 @@ class TecnicoController extends ChangeNotifier {
       await supabase.from('localizacao_usuario').insert({
         'id_usuario': idUsuario,
         'nacionalidade': nacionalidade ?? 'BRA',
-        'estado': estado,
+        'estado': estado ?? 'RS',
         'cidade': cidadeCtrl.text.trim(),
         'bairro': bairroCtrl.text.trim(),
         'cep': cepCtrl.text.trim(),

@@ -1,17 +1,17 @@
-// widgets/dropdown_experiencia.dart
+// widgets/dropdown_disponibilidade.dart
 import 'package:flutter/material.dart';
-import '../models/experiencia_model.dart';
+import '../../models/disponibilidade_model.dart';
 
-class DropdownExperiencia extends StatelessWidget {
-  final List<String> experiencias; // obrigatório
+class DropdownDisponibilidade extends StatelessWidget {
   final String? value;
-  final ValueChanged<String?>? onChanged;
+  final ValueChanged<String?> onChanged;
+  final List<String> disponiveis;
 
-  const DropdownExperiencia({
+  const DropdownDisponibilidade({
     Key? key,
-    required this.experiencias, // obrigatório
     required this.value,
     required this.onChanged,
+    required this.disponiveis,
   }) : super(key: key);
 
   @override
@@ -21,7 +21,7 @@ class DropdownExperiencia extends StatelessWidget {
       child: DropdownButtonFormField<String>(
         value: value?.isEmpty == true ? null : value,
         isExpanded: true,
-        items: experiencias
+        items: disponiveis
             .map(
               (v) => DropdownMenuItem(
                 value: v,
@@ -39,8 +39,11 @@ class DropdownExperiencia extends StatelessWidget {
         onChanged: onChanged,
         dropdownColor: Colors.black,
         decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.history, color: Color(0xFF00FF00)),
-          labelText: "Experiência",
+          prefixIcon: const Icon(
+            Icons.hourglass_empty,
+            color: Color(0xFF00FF00),
+          ),
+          labelText: "Disponibilidade",
           labelStyle: const TextStyle(
             color: Color(0xFF00FF00),
             fontWeight: FontWeight.bold,

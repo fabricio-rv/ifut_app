@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'widgets/botao_voltar.dart';
-import 'widgets/botao_continuar.dart';
-import 'widgets/campo_texto.dart';
+import 'widgets/botoes/botao_voltar.dart';
+import 'widgets/botoes/botao_continuar.dart';
+import 'widgets/campos/campo_texto.dart';
 
 class EsqueceuSenhaPage extends StatelessWidget {
   const EsqueceuSenhaPage({super.key});

@@ -209,7 +209,7 @@ class JogadorController extends ChangeNotifier {
       // 4. Insere em localizacao_usuario
       await supabase.from('localizacao_usuario').insert({
         'id_usuario': idUsuario,
-        'nacionalidade': nacionalidade ?? 'BRA',
+        'nacionalidade': nacionalidade,
         'estado': estado,
         'cidade': cidade,
         'bairro': bairro,

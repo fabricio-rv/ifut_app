@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
+
+/// CardPosicaoUT com centralização perfeita
 class CardPosicaoUT extends StatelessWidget {
   final String emoji;
   final String nome;
@@ -19,9 +22,9 @@ class CardPosicaoUT extends StatelessWidget {
     final largura = MediaQuery.of(context).size.width;
     final double cardWidth = largura < 350 ? 68 : 82;
     final double cardHeight = largura < 350 ? 85 : 108;
-    final double fontSize = largura < 350 ? 15 : 19;
+    final double fontSize = largura < 350 ? 14 : 18;
     final double emojiSize = largura < 350 ? 29 : 39;
-    Color neonGreen = const Color(0xFF39FF14);
+    const Color neonGreen = Color(0xFF39FF14);
 
     return AnimatedScale(
       scale: destaque ? 1.12 : 1.0,
@@ -52,42 +55,45 @@ class CardPosicaoUT extends StatelessWidget {
                 ),
               ],
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  emoji,
-                  style: TextStyle(
-                    fontSize: emojiSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 10,
-                        color: neonGreen.withOpacity(0.9),
-                        offset: const Offset(0, 0),
-                      ),
-                      Shadow(
-                        blurRadius: 17,
-                        color: Colors.white.withOpacity(0.16),
-                        offset: const Offset(0, 0),
-                      ),
-                    ],
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    emoji,
+                    style: TextStyle(
+                      fontSize: emojiSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 10,
+                          color: neonGreen.withOpacity(0.9),
+                          offset: const Offset(0, 0),
+                        ),
+                        Shadow(
+                          blurRadius: 17,
+                          color: Colors.white.withOpacity(0.16),
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 9),
-                Text(
-                  nome,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: fontSize,
-                    color: neonGreen,
-                    letterSpacing: -0.5,
+                  const SizedBox(height: 9),
+                  Text(
+                    nome,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: fontSize,
+                      color: neonGreen,
+                      letterSpacing: -0.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

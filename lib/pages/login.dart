@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'controllers/login_controller.dart';
-import 'widgets/campo_texto.dart';
-import 'widgets/campo_senha.dart';
-import 'widgets/botao_criar_conta.dart';
-import 'widgets/botao_login.dart'; // botão para logar
-import 'widgets/botao_esqueceu_senha.dart';
+import 'widgets/campos/campo_texto.dart';
+import 'widgets/campos/campo_senha.dart';
+import 'widgets/botoes/botao_criar_conta.dart';
+import 'widgets/botoes/botao_login.dart'; // botão para logar
+import 'widgets/botoes/botao_esqueceu_senha.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -101,7 +101,7 @@ class LoginPage extends StatelessWidget {
                                 if (success) {
                                   Navigator.pushReplacementNamed(
                                     context,
-                                    '/tutorial',
+                                    '/menu_principal',
                                   );
                                 }
                               },

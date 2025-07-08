@@ -16,20 +16,20 @@ import 'models/experiencia_model.dart';
 import 'models/disponibilidade_model.dart';
 import 'components/card_jogador_tecnico.dart';
 
-import 'widgets/campo_texto.dart';
-import 'widgets/campo_senha.dart';
-import 'widgets/campo_data.dart';
-import 'widgets/nacionalidade.dart';
-import 'widgets/dropdown_estado.dart';
-import 'widgets/dropdown_disponibilidade.dart';
-import 'widgets/dropdown_experiencia.dart';
-import 'widgets/niveis_treinador.dart';
-import 'widgets/estilo_tatico.dart';
-import 'widgets/botao_criar_conta.dart';
-import 'widgets/botao_voltar.dart';
-import 'widgets/titulo_secao.dart';
-import 'widgets/botao_login.dart';
-import 'widgets/calendario.dart';
+import 'widgets/campos/campo_texto.dart';
+import 'widgets/campos/campo_senha.dart';
+import 'widgets/campos/campo_data.dart';
+import 'widgets/dropdown/nacionalidade.dart';
+import 'widgets/dropdown/dropdown_estado.dart';
+import 'widgets/dropdown/dropdown_disponibilidade.dart';
+import 'widgets/dropdown/dropdown_experiencia.dart';
+import 'widgets/atributos/niveis_treinador.dart';
+import 'widgets/atributos/estilo_tatico.dart';
+import 'widgets/botoes/botao_criar_conta.dart';
+import 'widgets/botoes/botao_voltar.dart';
+import 'widgets/campos/titulo_secao.dart';
+import 'widgets/botoes/botao_login.dart';
+import 'widgets/dropdown/calendario.dart';
 
 import 'utils/validadores.dart';
 

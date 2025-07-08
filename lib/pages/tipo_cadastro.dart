@@ -1,7 +1,7 @@
 // tipo_cadastro.dart
 import 'package:flutter/material.dart';
-import 'widgets/botao_tutorial.dart';
-import 'widgets/botao_voltar.dart';
+import 'widgets/botoes/botao_tutorial.dart';
+import 'widgets/botoes/botao_voltar.dart';
 
 class TipoCadastroPage extends StatelessWidget {
   const TipoCadastroPage({super.key});

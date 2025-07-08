@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:image_cropper/image_cropper.dart';
 
+// Funções e cores auxiliares (mantidas como estão)
 int calcularIdade(DateTime nascimento) {
   final hoje = DateTime.now();
   int idade = hoje.year - nascimento.year;
@@ -32,52 +33,50 @@ const Map<String, String> abreviacoesPosicoes = {
   "2º Meio": "MEI",
   "Pivô": "ATA",
 };
-
 String abreviaPosicao(String p) => abreviacoesPosicoes[p] ?? p.toUpperCase();
 
 const Map<String, String> abreviacoesEstilos = {
-  'Ofensivo': 'Ofen.',
-  'Defensivo': 'Def.',
-  'Equilibrado': 'Equil.',
-  'Pressão alta': 'Press.',
-  'Jogo apoiado': 'Apoi.',
-  'Contra-ataque': 'C.-Atq.',
+  'Ofensivo': 'Ofen',
+  'Defensivo': 'Def',
+  'Equilibrado': 'Equil',
+  'Pressão alta': 'Press',
+  'Jogo apoiado': 'Apoi',
+  'Contra-ataque': 'C.-Atq',
   'Marcaçāo baixa': 'M. baixa',
   'Tiki-taka': 'T-Taka',
   'Posse de bola': 'Posse',
 };
 
 const Map<String, String> abreviacoesNiveisT = {
-  'Resenha': 'Rese.',
-  'Iniciante': 'Ini.',
+  'Resenha': 'Rese',
+  'Iniciante': 'Ini',
   'Casual': 'Casual',
   'Intermediário': 'Médio',
-  'Avançado': 'Avan.',
-  'Competitivo': 'Comp.',
-  'Semi-Amador': 'S-Amad.',
+  'Avançado': 'Avan',
+  'Competitivo': 'Comp',
+  'Semi-Amador': 'S-Amad',
   'Amador': 'Amador',
   'Ex-profissional': 'Ex-Profi',
 };
 
 const Map<String, String> abreviacoesNiveisJ = {
   'Pereba': 'Pereba',
-  'Resenha': 'Rese.',
+  'Resenha': 'Rese',
   'Casual': 'Casual',
   'Intermediário': 'Médio',
-  'Avançado': 'Avan.',
-  'Competitivo': 'Comp.',
-  'Semi-Amador': 'S-Amad.',
+  'Avançado': 'Avan',
+  'Competitivo': 'Comp',
+  'Semi-Amador': 'S-Amad',
   'Amador': 'Amador',
   'Ex-profissional': 'Ex-Profi',
 };
 
-// Mapas de abreviação para experiência e disponibilidade:
 const Map<String, String> abreviacoesExperiencia = {
   "Nenhuma": "Nada",
-  "Menos de 1 ano": "-1a.",
-  "1-3 anos": "1-3a.",
-  "3-5 anos": "3-5a.",
-  "+5 anos": "+5a.",
+  "Menos de 1 ano": "-1a",
+  "1-3 anos": "1-3a",
+  "3-5 anos": "3-5a",
+  "+5 anos": "+5a",
   "Só na resenha": "Resenha",
 };
 
@@ -90,7 +89,7 @@ const Map<String, String> abreviacoesDisponibilidade = {
 };
 
 String abreviaPe(String pe) {
-  if (pe.toLowerCase() == 'ambidestro') return 'AMBI';
+  if (pe.toLowerCase() == 'ambidestro') return 'AMBOS';
   return pe.toUpperCase();
 }
 
@@ -99,57 +98,315 @@ String exibeAlaComoSimples(String posicao) {
   return posicao;
 }
 
-class CustomBadge extends StatelessWidget {
-  final String text;
-  final Color bgColor;
-  final Color textColor;
-  final IconData? icon;
-  final double fontSize;
-  final EdgeInsetsGeometry? padding;
-  final TextStyle? customTextStyle; // NOVO PARÂMETRO
+Color corBronze() => const Color(0xFFCC8844);
+Color corPrata() => const Color(0xFFC0C0C0);
+Color corOuro() => const Color(0xFFFFD700);
+Color corDiamante() => const Color(0xFF7DF9FF);
+Color corAzulBadge() => const Color(0xFF0D213A);
+Color corAzulClaro() => const Color(0xFF36C2FF);
+Color corVerdeNeon() => const Color(0xFF00FF00);
 
-  const CustomBadge({
-    super.key,
-    required this.text,
-    required this.bgColor,
+Color corOver(int over) {
+  if (over >= 100) return const Color(0xFF6D4C41);
+  if (over >= 90) return corDiamante();
+  if (over >= 80) return corOuro();
+  if (over >= 70) return corPrata();
+  if (over >= 60) return corBronze();
+  if (over >= 50) return const Color(0xFFB71C1C);
+  return Colors.black;
+}
+
+// Custom Clipper para o formato do card do FIFA
+class _FifaCardClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    final double radius = size.width * 0.08; // Raio das bordas arredondadas
+    final double topNotchHeight =
+        size.height * 0.03; // Altura do "entalhe" superior
+    final double topNotchWidthRatio =
+        0.2; // Largura do entalhe em relação à largura do card
+
+    // Começa do canto inferior esquerdo arredondado
+    path.moveTo(0, size.height - radius);
+    path.arcToPoint(
+      Offset(radius, size.height),
+      radius: Radius.circular(radius),
+      clockwise: false,
+    );
+
+    // Linha para o canto inferior direito arredondado
+    path.lineTo(size.width - radius, size.height);
+    path.arcToPoint(
+      Offset(size.width, size.height - radius),
+      radius: Radius.circular(radius),
+      clockwise: false,
+    );
+
+    // Linha para o canto superior direito arredondado
+    path.lineTo(size.width, radius);
+    path.arcToPoint(
+      Offset(size.width - radius, 0),
+      radius: Radius.circular(radius),
+      clockwise: false,
+    );
+
+    // Borda superior com o entalhe
+    path.lineTo(size.width / 2 + (size.width * topNotchWidthRatio / 2), 0);
+    path.lineTo(size.width / 2, topNotchHeight); // Ponto mais baixo do entalhe
+    path.lineTo(size.width / 2 - (size.width * topNotchWidthRatio / 2), 0);
+    path.lineTo(radius, 0);
+
+    // Linha para o canto superior esquerdo arredondado
+    path.arcToPoint(
+      Offset(0, radius),
+      radius: Radius.circular(radius),
+      clockwise: false,
+    );
+
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true; // Recalcula o clip se o tamanho mudar
+}
+
+// Widget auxiliar para exibir um item de estatística no grid do jogador
+class _PlayerStatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color textColor;
+  final double fontSize;
+  final IconData? icon; // Novo: ícone opcional
+
+  const _PlayerStatItem({
+    required this.label,
+    required this.value,
     required this.textColor,
-    this.icon,
-    this.fontSize = 22,
-    this.padding,
-    this.customTextStyle, // NOVO PARÂMETRO
+    required this.fontSize,
+    this.icon, // Novo: ícone opcional
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: padding ?? EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black, width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, color: textColor, size: fontSize + 2),
-            SizedBox(width: 4),
-          ],
-          Text(
-            text.toUpperCase(),
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-              fontSize: fontSize,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: fontSize * 0.7, // Rótulo menor
+            letterSpacing: 0.5,
           ),
-        ],
-      ),
+        ),
+        Row(
+          // Usar Row para ícone e valor
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                color: textColor,
+                size: fontSize * 0.9,
+              ), // Tamanho do ícone
+              SizedBox(
+                width: fontSize * 0.1,
+              ), // Espaçamento entre ícone e valor
+            ],
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+                fontSize: fontSize,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
 
-// Badge menor para estilos táticos e níveis do técnico
+// Widget auxiliar para o grid de estatísticas do jogador
+class _PlayerStatsGrid extends StatelessWidget {
+  final double cardWidth;
+  final String peDominante;
+  final double altura;
+  final double peso;
+  final List<String> posicoesSecundarias;
+  final List<String> niveis;
+  final int jogos;
+  final int gols;
+  final int assistencias;
+  final List<String> modalidades; // Novo
+
+  const _PlayerStatsGrid({
+    required this.cardWidth,
+    required this.peDominante,
+    required this.altura,
+    required this.peso,
+    required this.posicoesSecundarias,
+    required this.niveis,
+    this.jogos = 0,
+    this.gols = 0,
+    this.assistencias = 0,
+    required this.modalidades, // Novo
+    super.key,
+  });
+
+  String _getSecondaryPositionsText() {
+    if (posicoesSecundarias.isEmpty) return '--';
+    return posicoesSecundarias.map((p) => abreviaPosicao(p)).join(', ');
+  }
+
+  String _getNivelText() {
+    if (niveis.isEmpty) return '--';
+    // Retorna todos os níveis selecionados, abreviados e separados por vírgula
+    return niveis.map((n) => abreviacoesNiveisJ[n] ?? n).join(', ');
+  }
+
+  String _getModalidadesText() {
+    if (modalidades.isEmpty) return '--';
+    return modalidades.join(', ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = Colors.white;
+    final fontSize =
+        cardWidth * 0.06; // Aumentado o tamanho da fonte para as estatísticas
+
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start, // Alinha o conteúdo ao início
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _PlayerStatItem(
+              label: 'PE',
+              value: abreviaPe(peDominante),
+              textColor: textColor,
+              fontSize: fontSize,
+            ),
+            _PlayerStatItem(
+              label: 'ALT',
+              value: _formatarNumeroBonito(altura, 'cm'),
+              textColor: textColor,
+              fontSize: fontSize,
+            ),
+            _PlayerStatItem(
+              label: 'PESO',
+              value: _formatarNumeroBonito(peso, 'kg'),
+              textColor: textColor,
+              fontSize: fontSize,
+            ),
+          ],
+        ),
+        SizedBox(height: cardWidth * 0.03), // Espaçamento aumentado
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _PlayerStatItem(
+              label: 'JOGOS',
+              value: jogos.toString(),
+              textColor: textColor,
+              fontSize: fontSize,
+              icon: Icons.sports_soccer,
+            ),
+            _PlayerStatItem(
+              label: 'GOLS',
+              value: gols.toString(),
+              textColor: textColor,
+              fontSize: fontSize,
+              icon: Icons.sports_football,
+            ),
+            _PlayerStatItem(
+              label: 'ASSIST',
+              value: assistencias.toString(),
+              textColor: textColor,
+              fontSize: fontSize,
+              icon: Icons.handshake,
+            ),
+          ],
+        ),
+        SizedBox(height: cardWidth * 0.03), // Espaçamento aumentado
+        Row(
+          // Nova linha para POS. SECUNDÁRIAS e SEUS NÍVEIS
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween, // Distribui o espaço
+          children: [
+            _PlayerStatItem(
+              label: 'POS. SECUNDÁRIAS',
+              value: _getSecondaryPositionsText(),
+              textColor: textColor,
+              fontSize: fontSize,
+            ),
+            _PlayerStatItem(
+              label: 'SEUS NÍVEIS',
+              value: _getNivelText(),
+              textColor: textColor,
+              fontSize: fontSize,
+            ), // Adicionado SEUS NÍVEIS
+          ],
+        ),
+        SizedBox(height: cardWidth * 0.03), // Espaçamento
+        Align(
+          // Nova linha para MODALIDADES
+          alignment: Alignment.centerLeft,
+          child: _PlayerStatItem(
+            label: 'MODALIDADES',
+            value: _getModalidadesText(),
+            textColor: textColor,
+            fontSize: fontSize,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Widget para exibir o nível do jogador com barras visuais
+class _LevelBars extends StatelessWidget {
+  final int nivel;
+  final double barWidth;
+  final double barHeight;
+  final int maxLevel;
+
+  const _LevelBars({
+    required this.nivel,
+    required this.barWidth,
+    this.barHeight = 8.0,
+    this.maxLevel = 5,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(maxLevel, (index) {
+        bool isActive = index < nivel;
+        return Container(
+          width: barWidth / maxLevel - 2, // Distribute width, with small gap
+          height: barHeight,
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          decoration: BoxDecoration(
+            color: isActive ? corVerdeNeon() : Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// Badge menor para estilos táticos e níveis do técnico (mantido do seu código, com ajustes de fonte)
 Widget tecnicoMiniBadge(
   String text,
   Color borderColor,
@@ -181,24 +438,44 @@ Widget tecnicoMiniBadge(
   );
 }
 
-Color corBronze() => Color(0xFFCC8844);
-Color corPrata() => Color(0xFFC0C0C0);
-Color corOuro() => Color(0xFFFFD700);
-Color corDiamante() => Color(0xFF7DF9FF);
-Color corAzulBadge() => Color(0xFF0D213A);
-Color corAzulClaro() => Color(0xFF36C2FF);
-Color corVerdeNeon() => Color(0xFF00FF00);
-
-Color corOver(int over) {
-  if (over >= 100) return Color(0xFF6D4C41);
-  if (over >= 90) return corDiamante();
-  if (over >= 80) return corOuro();
-  if (over >= 70) return corPrata();
-  if (over >= 60) return corBronze();
-  if (over >= 50) return Color(0xFFB71C1C);
-  return Colors.black;
+// Função tecnicoBadge movida para o nível superior
+Widget tecnicoBadge(String label, String value, double width) {
+  return Container(
+    margin: EdgeInsets.symmetric(vertical: width * 0.012),
+    padding: EdgeInsets.symmetric(
+      horizontal: width * 0.015,
+      vertical: width * 0.036,
+    ),
+    decoration: BoxDecoration(
+      color: Colors.black,
+      border: Border.all(color: corVerdeNeon(), width: 1.4),
+      borderRadius: BorderRadius.circular(9),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.greenAccent,
+            fontSize: width * 0.030,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: width * 0.040,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
+// O Widget principal do Card de Jogador/Técnico
 class JogadorTecnicoCard extends StatelessWidget {
   final String nome;
   final String apelido;
@@ -212,19 +489,22 @@ class JogadorTecnicoCard extends StatelessWidget {
   final double altura;
   final double peso;
   final List<String> niveis;
-  final List<String> badges;
+  final List<String> badges; // Não usado por enquanto, conforme solicitado
   final String? escudoClube;
   final String? tipoPerfil;
   final bool exibirEscolherFoto;
   final void Function(BuildContext)? onSelecionarFoto;
-  final DateTime? dataNascimento; // nova prop
+  final DateTime? dataNascimento;
   final String? estado;
-
   // Técnico (opcionais)
-  final List<String> estilosTaticos; // MULTI badge
-  final List<String> niveisQueTreina; // MULTI badge
+  final List<String> estilosTaticos;
+  final List<String> niveisQueTreina;
   final String experiencia;
   final String disponibilidade;
+  final int jogos; // Novo
+  final int gols; // Novo
+  final int assistencias; // Novo
+  final List<String> modalidades; // Novo
 
   const JogadorTecnicoCard({
     super.key,
@@ -251,6 +531,10 @@ class JogadorTecnicoCard extends StatelessWidget {
     required this.niveisQueTreina,
     required this.experiencia,
     required this.disponibilidade,
+    this.jogos = 0, // Default 0
+    this.gols = 0, // Default 0
+    this.assistencias = 0, // Default 0
+    this.modalidades = const [], // Default vazio
   });
 
   @override
@@ -258,418 +542,299 @@ class JogadorTecnicoCard extends StatelessWidget {
     final verdeNeon = corVerdeNeon();
     final size = MediaQuery.of(context).size;
     final width = size.width;
-    final height = size.height;
-    final isPortrait = height > width;
-    final double avatarSize = width * 0.39; // responsivo
-    final double avatarWidth = avatarSize; // já definido (width * 0.40)
-    final double avatarHeight = avatarSize * 4 / 3;
-    Widget tecnicoBadge(String label, String value, double width) {
-      return Container(
-        margin: EdgeInsets.symmetric(vertical: width * 0.012),
-        padding: EdgeInsets.symmetric(
-          horizontal: width * 0.015,
-          vertical: width * 0.036,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.black,
-          border: Border.all(color: corVerdeNeon(), width: 1.4),
-          borderRadius: BorderRadius.circular(9),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.greenAccent,
-                fontSize: width * 0.030,
-                fontWeight: FontWeight.w800,
+    final double cardAspectRatio =
+        3 / 4.7; // Proporção de aspecto aproximada do card FIFA
+    final double cardWidth = width * 0.8; // Ajuste o tamanho geral do card aqui
+    final double cardHeight = cardWidth / cardAspectRatio;
+
+    // Dimensões da imagem do jogador dentro do card
+    final double playerImageWidth = cardWidth * 0.7;
+    final double playerImageHeight =
+        playerImageWidth * 1.3; // Proporção similar à silhueta FIFA
+
+    return Center(
+      child: AspectRatio(
+        aspectRatio: cardAspectRatio,
+        child: ClipPath(
+          clipper: _FifaCardClipper(),
+          child: Container(
+            width: cardWidth,
+            height: cardHeight,
+            decoration: BoxDecoration(
+              // Gradiente de fundo principal do card: preto/chumbo com verde neon
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.grey[900]!.withOpacity(0.9), // Chumbo escuro
+                  Colors.black.withOpacity(0.9), // Preto
+                  verdeNeon.withOpacity(0.1), // Leve brilho neon na base
+                ],
+                stops: const [0.0, 0.7, 1.0],
               ),
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: width * 0.040,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // POSIÇÕES SECUNDÁRIAS BADGES
-    final posicoesSecundariasWidgets = posicoesSecundarias
-        .map(
-          (p) => Padding(
-            padding: EdgeInsets.symmetric(horizontal: 0),
-            child: CustomBadge(
-              text: abreviaPosicao(p), // <-- AGORA USA ABREVIAÇÃO!
-              bgColor: corPrata(),
-              textColor: Colors.black,
-              fontSize: width * 0.040,
-              padding: EdgeInsets.symmetric(
-                horizontal: width * 0.045,
-                vertical: width * 0.028,
-              ),
-              customTextStyle: GoogleFonts.poppins(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: width * 0.040,
-              ),
-            ),
-          ),
-        )
-        .toList();
-
-    // Físicos (pe, altura, peso)
-    final fisicoWidgets = [
-      if (peDominante.isNotEmpty)
-        CustomBadge(
-          text: abreviaPe(peDominante), // já faz caixa alta só no PE
-          bgColor: verdeNeon,
-          textColor: Colors.black,
-          fontSize: width * 0.034,
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.048,
-            vertical: width * 0.032,
-          ),
-          customTextStyle: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: width * 0.040,
-            letterSpacing: 0.5,
-          ),
-        ),
-      if (altura > 0)
-        CustomBadge(
-          text: _formatarNumeroBonito(altura, 'cm'),
-          bgColor: verdeNeon,
-          textColor: Colors.black,
-          fontSize: width * 0.042,
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.037,
-            vertical: width * 0.026,
-          ),
-          customTextStyle: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: width * 0.040,
-            // NÃO usa .toUpperCase() aqui!
-          ),
-        ),
-      if (peso > 0)
-        CustomBadge(
-          text: _formatarNumeroBonito(peso, 'kg'),
-          bgColor: verdeNeon,
-          textColor: Colors.black,
-          fontSize: width * 0.042,
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.037,
-            vertical: width * 0.026,
-          ),
-          customTextStyle: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: width * 0.040,
-          ),
-        ),
-    ];
-
-    // Níveis - bronze, prata, ouro
-    List<String> bronzeNiveis = ['pereba', 'resenha', 'casual'];
-    List<String> prataNiveis = ['intermediario', 'avançado', 'competitivo'];
-    List<String> ouroNiveis = ['semi-amador', 'amador', 'ex-profissional'];
-    List<Widget> niveisWidgets = niveis.map((n) {
-      final lower = n.toLowerCase();
-      Color bg;
-      if (bronzeNiveis.contains(lower)) {
-        bg = corBronze();
-      } else if (prataNiveis.contains(lower))
-        bg = corPrata();
-      else
-        bg = corOuro();
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0),
-        child: CustomBadge(
-          text: abreviacoesNiveisJ[n] ?? (n[0].toUpperCase() + n.substring(1)),
-          bgColor: bg,
-          textColor: Colors.black,
-          fontSize: width * 0.036,
-          padding: EdgeInsets.symmetric(
-            horizontal: width * 0.049,
-            vertical: width * 0.030,
-          ),
-          customTextStyle: GoogleFonts.poppins(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: width * 0.030,
-          ),
-        ),
-      );
-    }).toList();
-
-    // BADGES DE CONQUISTA
-    final conquistasColors = [
-      corBronze(),
-      corPrata(),
-      corOuro(),
-      corDiamante(),
-    ];
-    final conquistasWidgets = List.generate(4, (i) {
-      return Expanded(
-        child: Container(
-          height: width * 0.15,
-          margin: EdgeInsets.symmetric(horizontal: width * 0.01, vertical: 2),
-          decoration: BoxDecoration(
-            color: conquistasColors[i],
-            borderRadius: BorderRadius.circular(width * 0.04),
-            border: Border.all(color: verdeNeon, width: 3),
-          ),
-          child: Center(
-            child: Text('🏆', style: TextStyle(fontSize: width * 0.09)),
-          ),
-        ),
-      );
-    });
-
-    // Agora, o layout responsivo:
-    return AspectRatio(
-      aspectRatio: 3 / 4.7,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(width * 0.08),
-          border: Border.all(color: verdeNeon, width: width * 0.011),
-        ),
-        padding: EdgeInsets.all(width * 0.045),
-        child: Stack(
-          children: [
-            // OVERALL - topo esquerdo
-            Positioned(
-              top: width * 0.00,
-              left: width * 0.00,
-              child: Text(
-                overall.toString(),
-                style: TextStyle(
-                  color: corOver(overall),
-                  fontWeight: FontWeight.bold,
-                  fontSize: width * 0.12,
-                  letterSpacing: 1.5,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.6),
+                  blurRadius: 20,
+                  spreadRadius: 8,
+                  offset: const Offset(0, 15),
                 ),
-              ),
+              ],
             ),
-
-            // LEVEL - topo direito
-            Positioned(
-              top: width * 0.03,
-              right: width * 0.00,
-              child: Text(
-                'NÍV. $nivel',
-                style: TextStyle(
-                  color: corAzulClaro(),
-                  fontWeight: FontWeight.bold,
-                  fontSize: width * 0.06,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-
-            // IDADE - topo direito
-            if (dataNascimento != null)
-              Positioned(
-                top: width * 0.14,
-                right: width * 0.01,
-                child: Text(
-                  '${calcularIdade(dataNascimento!)}yrs',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: width * 0.062,
+            child: Stack(
+              children: [
+                // Textura de fundo sutil (opcional, pode ser uma imagem ou um Container com gradiente sutil)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.05, // Transparência da textura
+                    child: Image.asset(
+                      'assets/background_texture.png', // Adicione uma imagem de textura sutil aqui
+                      fit: BoxFit.cover,
+                      repeat: ImageRepeat.repeat,
+                      errorBuilder: (c, e, s) =>
+                          Container(), // Não mostra erro se a imagem não existir
+                    ),
                   ),
                 ),
-              ),
 
-            // Bandeira do ESTADO (DIREITA)
-            if ((estado ?? '').isNotEmpty)
-              Positioned(
-                top: width * 0.25,
-                right: width * 0.00,
-                child: Image.asset(
-                  'assets/estados/${(estado ?? '').toLowerCase()}.png',
-                  width: width * 0.14,
-                  height: width * 0.11,
-                  errorBuilder: (c, e, s) =>
-                      SizedBox(width: width * 0.12, height: width * 0.08),
+                // OVERALL - topo esquerdo
+                Positioned(
+                  top: cardHeight * 0.02,
+                  left: cardWidth * 0.05,
+                  child: Text(
+                    overall.toString(),
+                    style: GoogleFonts.poppins(
+                      color: corOver(overall),
+                      fontWeight: FontWeight.w900, // Extra bold
+                      fontSize: cardWidth * 0.15, // Overall maior
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                 ),
-              ),
-
-            // POSIÇÃO PRINCIPAL ou TÉC (se técnico)
-            Positioned(
-              top: width * 0.15,
-              left: width * 0.01,
-              child: Text(
-                (tipoPerfil == 'Técnico'
-                    ? 'TÉC'
-                    : abreviaPosicao(
-                        exibeAlaComoSimples(posicaoPrincipal),
-                      )), // <-- AGORA USA ABREVIAÇÃO
-                style: TextStyle(
-                  color: Colors.amber,
-                  fontWeight: FontWeight.bold,
-                  fontSize: width * 0.062,
+                // POSIÇÃO PRINCIPAL ou TÉC (se técnico)
+                Positioned(
+                  top: cardHeight * 0.15,
+                  left: cardWidth * 0.06,
+                  child: Text(
+                    (tipoPerfil == 'Técnico'
+                            ? 'TÉC'
+                            : abreviaPosicao(
+                                exibeAlaComoSimples(posicaoPrincipal),
+                              ))
+                        .toUpperCase(),
+                    style: GoogleFonts.poppins(
+                      color:
+                          Colors.white, // Branco para contraste no fundo escuro
+                      fontWeight: FontWeight.bold,
+                      fontSize: cardWidth * 0.07,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-
-            // Bandeira nacionalidade
-            Positioned(
-              top: width * 0.25,
-              left: width * 0.00,
-              child: Image.asset(
-                'assets/bandeiras/${nacionalidade.toLowerCase()}.png',
-                width: width * 0.14,
-                height: width * 0.11,
-                errorBuilder: (c, e, s) =>
-                    SizedBox(width: width * 0.12, height: width * 0.08),
-              ),
-            ),
-
-            // Escudo
-            Positioned(
-              top: width * 0.36,
-              right: width * 0.64,
-              child: escudoClube == null || escudoClube!.isEmpty
-                  ? Image.asset(
-                      'assets/escudo_sem_clube.png',
-                      width: width * 0.18,
-                      height: width * 0.18,
-                      fit: BoxFit.contain,
-                    )
-                  : escudoClube!.startsWith('http')
-                  ? Image.network(escudoClube!, fit: BoxFit.contain)
-                  : Image.asset(escudoClube!, fit: BoxFit.contain),
-            ),
-
-            // AVATAR CENTRALIZADO, GRANDE
-            Positioned(
-              top: width * 0.00,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    GestureDetector(
+                // Bandeira nacionalidade
+                Positioned(
+                  top: cardHeight * 0.23,
+                  left: cardWidth * 0.06,
+                  child: Image.asset(
+                    'assets/bandeiras/${nacionalidade.toLowerCase()}.png',
+                    width: cardWidth * 0.15,
+                    height: cardWidth * 0.11,
+                    errorBuilder: (c, e, s) => SizedBox(
+                      width: cardWidth * 0.12,
+                      height: cardWidth * 0.08,
+                    ),
+                  ),
+                ),
+                // Escudo
+                Positioned(
+                  top: cardHeight * 0.32,
+                  left: cardWidth * 0.04,
+                  child: escudoClube == null || escudoClube!.isEmpty
+                      ? Image.asset(
+                          'assets/escudo_sem_clube.png',
+                          width: cardWidth * 0.18,
+                          height: cardWidth * 0.18,
+                          fit: BoxFit.contain,
+                        )
+                      : escudoClube!.startsWith('http')
+                      ? Image.network(
+                          escudoClube!,
+                          fit: BoxFit.contain,
+                          width: cardWidth * 0.18,
+                          height: cardWidth * 0.18,
+                        )
+                      : Image.asset(
+                          escudoClube!,
+                          fit: BoxFit.contain,
+                          width: cardWidth * 0.18,
+                          height: cardWidth * 0.18,
+                        ),
+                ),
+                // AVATAR CENTRALIZADO, GRANDE
+                Positioned(
+                  top:
+                      cardHeight *
+                      0.02, // Ajuste a posição superior para encaixar na metade superior do card
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: GestureDetector(
                       onTap: exibirEscolherFoto
                           ? () => onSelecionarFoto?.call(context)
                           : null,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: avatarSize,
-                            height: avatarSize * 1.4, // <-- TROQUE AQUI!
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(
-                                50,
-                              ), // leve arredondado
+                      child: Container(
+                        width: playerImageWidth,
+                        height: playerImageHeight,
+                        decoration: BoxDecoration(
+                          color: Colors
+                              .transparent, // Fundo transparente para a imagem
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(playerImageWidth * 0.1),
+                            topRight: Radius.circular(playerImageWidth * 0.1),
+                            bottomLeft: Radius.circular(
+                              playerImageWidth * 0.02,
                             ),
-                            clipBehavior: Clip.hardEdge,
-                            child: fotoUrl.isNotEmpty
-                                ? (fotoUrl.startsWith('/') ||
-                                          fotoUrl.startsWith('file:')
-                                      ? Image.file(
-                                          File(fotoUrl),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.network(
-                                          fotoUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              Image.asset(
-                                                'assets/default_avatar.png',
-                                                fit: BoxFit.cover,
-                                              ),
-                                        ))
-                                : Image.asset(
-                                    'assets/default_avatar.png',
-                                    fit: BoxFit.cover,
-                                  ),
+                            bottomRight: Radius.circular(
+                              playerImageWidth * 0.02,
+                            ),
                           ),
-                          if (exibirEscolherFoto && fotoUrl.isEmpty)
-                            Container(
-                              width: avatarSize,
-                              height: avatarSize * 1.3,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(32),
+                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: fotoUrl.isNotEmpty
+                            ? (fotoUrl.startsWith('/') ||
+                                      fotoUrl.startsWith('file:')
+                                  ? Image.file(File(fotoUrl), fit: BoxFit.cover)
+                                  : Image.network(
+                                      fotoUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Image.asset(
+                                        'assets/default_avatar.png',
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ))
+                            : Image.asset(
+                                'assets/default_avatar.png',
+                                fit: BoxFit.cover,
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.camera_alt_rounded,
-                                    color: Colors.white,
-                                    size: avatarSize * 0.20,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Clique para escolher',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: avatarSize * 0.08,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
+                      ),
+                    ),
+                  ),
+                ),
+                // APELIDO CENTRALIZADO, LOGO ABAIXO AVATAR
+                Positioned(
+                  top: cardHeight * 0.59, // Posição abaixo da imagem
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Text(
+                      (apelido.isNotEmpty ? apelido : nome)
+                          .toUpperCase(), // Usa nome se apelido estiver vazio
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w900, // Extra bold
+                        fontSize: cardWidth * 0.09, // Nome maior
+                        color: Colors
+                            .white, // Branco para contraste no fundo escuro
+                        letterSpacing: 1.5,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                // LEVEL - topo direito (agora com barras visuais)
+                Positioned(
+                  top: cardHeight * 0.04,
+                  right: cardWidth * 0.05,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'NÍV. $nivel',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white, // Branco para contraste
+                          fontWeight: FontWeight.bold,
+                          fontSize: cardWidth * 0.06,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: cardHeight * 0.005),
+                      _LevelBars(
+                        nivel: nivel,
+                        barWidth: cardWidth * 0.25,
+                      ), // Barras de nível
+                    ],
+                  ),
+                ),
+                // IDADE - topo direito
+                if (dataNascimento != null)
+                  Positioned(
+                    top: cardHeight * 0.15,
+                    right: cardWidth * 0.06,
+                    child: Text(
+                      '${calcularIdade(dataNascimento!)}yrs',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white, // Branco para contraste
+                        fontWeight: FontWeight.bold,
+                        fontSize: cardWidth * 0.062,
+                      ),
+                    ),
+                  ),
+                // Bandeira do ESTADO (DIREITA)
+                if (estado != null && estado!.isNotEmpty)
+                  Positioned(
+                    top: cardHeight * 0.22,
+                    right: cardWidth * 0.06,
+                    child: Image.asset(
+                      'assets/estados/${estado!.toLowerCase()}.png',
+                      width: cardWidth * 0.14,
+                      height: cardWidth * 0.11,
+                      errorBuilder: (c, e, s) => SizedBox(
+                        width: cardWidth * 0.12,
+                        height: cardWidth * 0.08,
+                      ),
+                    ),
+                  ),
+
+                // GRID DE ESTATÍSTICAS / ATRIBUTOS (seção inferior)
+                Positioned(
+                  top:
+                      cardHeight *
+                      0.66, // Ajustado para subir mais, logo abaixo do apelido
+                  left: 0,
+                  right: 0,
+                  bottom: 0, // Ocupa o restante do espaço
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.7), // Mais escuro no topo
+                          corVerdeNeon().withOpacity(0.3), // Mais neon na base
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-
-            // APELIDO CENTRALIZADO, LOGO ABAIXO AVATAR
-            Positioned(
-              top: width * 0.57,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Text(
-                  (apelido.isNotEmpty ? apelido : '--').toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: width * 0.10,
-                    color: verdeNeon,
-                    letterSpacing: 1.1,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
-
-            // BADGES SECUNDÁRIAS | FÍSICO | NÍVEIS (VERTICAL, responsivo)
-            Positioned(
-              top: avatarSize + width * 0.33,
-              left: 0,
-              right: 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // COLUNA ESQUERDA (Experiência, Disponibilidade)
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: tipoPerfil == 'Técnico'
-                          ? [
-                              if ((experiencia ?? '').isNotEmpty)
+                    padding: EdgeInsets.symmetric(
+                      horizontal: cardWidth * 0.05,
+                      vertical: cardHeight * 0.02,
+                    ),
+                    child: tipoPerfil == 'Jogador'
+                        ? _PlayerStatsGrid(
+                            cardWidth: cardWidth,
+                            peDominante: peDominante,
+                            altura: altura,
+                            peso: peso,
+                            posicoesSecundarias: posicoesSecundarias,
+                            niveis: niveis,
+                            jogos: jogos,
+                            gols: gols,
+                            assistencias: assistencias,
+                            modalidades: modalidades, // Passando as modalidades
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (experiencia.isNotEmpty)
                                 tecnicoBadge(
                                   'EXP.',
                                   (abreviacoesExperiencia[experiencia] ??
@@ -677,7 +842,7 @@ class JogadorTecnicoCard extends StatelessWidget {
                                       .toUpperCase(),
                                   width,
                                 ),
-                              if ((disponibilidade ?? '').isNotEmpty)
+                              if (disponibilidade.isNotEmpty)
                                 tecnicoBadge(
                                   'DISP.',
                                   (abreviacoesDisponibilidade[disponibilidade] ??
@@ -685,105 +850,78 @@ class JogadorTecnicoCard extends StatelessWidget {
                                       .toUpperCase(),
                                   width,
                                 ),
-                            ]
-                          : posicoesSecundariasWidgets
-                                .map(
-                                  (w) => Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: width * 0.01,
-                                    ),
-                                    child: w,
-                                  ),
-                                )
-                                .toList(),
-                    ),
-                  ),
-                  // COLUNA CENTRO (Estilos Táticos)
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: tipoPerfil == 'Técnico'
-                          ? estilosTaticos
-                                .map(
-                                  (e) => tecnicoMiniBadge(
-                                    (abreviacoesEstilos[e] ?? e)
-                                        .toUpperCase(), // badge em maiúsculo
-                                    Color(0xFF00FF00),
-                                    Color(0xFF00FF00),
+                              // Estilos Táticos
+                              Wrap(
+                                spacing: width * 0.015,
+                                runSpacing: width * 0.01,
+                                children: estilosTaticos
+                                    .map(
+                                      (e) => tecnicoMiniBadge(
+                                        (abreviacoesEstilos[e] ?? e)
+                                            .toUpperCase(),
+                                        corVerdeNeon(),
+                                        corVerdeNeon(),
+                                        width,
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                              // Níveis que treina
+                              Wrap(
+                                spacing: width * 0.015,
+                                runSpacing: width * 0.01,
+                                children: niveisQueTreina.map((n) {
+                                  final lower = n.toLowerCase();
+                                  Color cor;
+                                  if ([
+                                    'resenha',
+                                    'iniciante',
+                                    'casual',
+                                  ].contains(lower)) {
+                                    cor = corBronze();
+                                  } else if ([
+                                    'intermediario',
+                                    'avançado',
+                                    'competitivo',
+                                  ].contains(lower)) {
+                                    cor = corPrata();
+                                  } else {
+                                    cor = corOuro();
+                                  }
+                                  final String label =
+                                      (abreviacoesNiveisT[n] ?? n)
+                                          .toUpperCase();
+                                  return tecnicoMiniBadge(
+                                    label,
+                                    cor,
+                                    cor,
                                     width,
-                                  ),
-                                )
-                                .toList()
-                          : fisicoWidgets
-                                .map(
-                                  (w) => Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: width * 0.01,
-                                    ),
-                                    child: w,
-                                  ),
-                                )
-                                .toList(),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+
+                // Ícone FIFA na parte inferior central
+                Positioned(
+                  bottom:
+                      cardHeight *
+                      0.01, // Ajuste para ficar dentro da nova seção de degradê
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Icon(
+                      Icons.sports_soccer,
+                      color: corVerdeNeon().withOpacity(0.6),
+                      size: cardWidth * 0.08,
                     ),
                   ),
-                  // COLUNA DIREITA (Níveis que treina)
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: tipoPerfil == 'Técnico'
-                          ? niveisQueTreina.map((n) {
-                              // Busca cor conforme categoria
-                              final lower = n.toLowerCase();
-                              Color cor;
-                              if ([
-                                'resenha',
-                                'iniciante',
-                                'casual',
-                              ].contains(lower)) {
-                                cor = corBronze();
-                              } else if ([
-                                'intermediario',
-                                'avançado',
-                                'competitivo',
-                              ].contains(lower))
-                                cor = corPrata();
-                              else
-                                cor = corOuro();
-
-                              // Aplica abreviação para o badge, já em maiúsculo
-                              final String label = (abreviacoesNiveisT[n] ?? n)
-                                  .toUpperCase();
-
-                              return tecnicoMiniBadge(
-                                label,
-                                cor, // borda
-                                cor, // texto
-                                width,
-                              );
-                            }).toList()
-                          : niveisWidgets
-                                .map(
-                                  (w) => Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: width * 0.01,
-                                    ),
-                                    child: w,
-                                  ),
-                                )
-                                .toList(),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            // ISSO AQUI FICA LOGO ABAIXO, NÃO TIRE:
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Row(children: conquistasWidgets),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class LocalizacaoController extends ChangeNotifier {
   String nacionalidade = 'BRA';
-  String? estado;
+  String? estado = 'RS';
 
   final TextEditingController cidadeCtrl = TextEditingController();
   final TextEditingController cepCtrl = TextEditingController();
@@ -58,7 +58,7 @@ class LocalizacaoController extends ChangeNotifier {
 
   void limpar() {
     nacionalidade = 'BRA';
-    estado = null;
+    estado = 'RS';
     cidade = '';
     cep = '';
     bairro = '';

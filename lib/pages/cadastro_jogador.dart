@@ -21,18 +21,18 @@ import 'components/card_jogador_tecnico.dart';
 import 'components/campinho_fut7.dart';
 import 'components/banco_reservas.dart';
 
-import 'widgets/campo_texto.dart';
-import 'widgets/campo_senha.dart';
-import 'widgets/campo_data.dart';
-import 'widgets/dropdown_estado.dart';
-import 'widgets/nacionalidade.dart';
-import 'widgets/botao_pe.dart';
-import 'widgets/titulo_secao.dart';
-import 'widgets/niveis_jogador.dart';
-import 'widgets/botao_voltar.dart';
-import 'widgets/botao_login.dart';
-import 'widgets/botao_criar_conta.dart';
-import 'widgets/calendario.dart';
+import 'widgets/campos/campo_texto.dart';
+import 'widgets/campos/campo_senha.dart';
+import 'widgets/campos/campo_data.dart';
+import 'widgets/dropdown/dropdown_estado.dart';
+import 'widgets/dropdown/nacionalidade.dart';
+import 'widgets/botoes/botao_pe.dart';
+import 'widgets/campos/titulo_secao.dart';
+import 'widgets/atributos/niveis_jogador.dart';
+import 'widgets/botoes/botao_voltar.dart';
+import 'widgets/botoes/botao_login.dart';
+import 'widgets/botoes/botao_criar_conta.dart';
+import 'widgets/dropdown/calendario.dart';
 
 import 'utils/validadores.dart';
 
@@ -276,8 +276,9 @@ class _CadastroJogadorPageState extends State<CadastroJogadorPage> {
                                               dataNascimento: dadosPessoais
                                                   .calendarioController
                                                   .dataDateTime, // <-- ADICIONE!
-                                              estado: localizacao
-                                                  .estado, // <-- ADICIONE se quiser bandeira do estado depois!
+                                              estado:
+                                                  localizacao.estado ??
+                                                  '', // <-- ADICIONE se quiser bandeira do estado depois!
                                             ),
                                       ),
                                 ),
@@ -605,7 +606,7 @@ class _CadastroJogadorPageState extends State<CadastroJogadorPage> {
               const SizedBox(height: 12),
               TituloSecao("Posições Preferidas", Icons.sports, isMobile),
               Text(
-                "Selecione 1 principal (clique) e até 3 secundárias (duplo clique)",
+                "Selecione 1 principal (ouro) e até 3 secundárias (pratas)",
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.86),
                   fontSize: isMobile ? 17 : 19,
@@ -617,20 +618,40 @@ class _CadastroJogadorPageState extends State<CadastroJogadorPage> {
                 principal: jogadorCtrl.posicaoPrincipal,
                 secundarias: jogadorCtrl.posicoesSecundarias,
                 onSelect: (nome) {
+                  final setSec = Set<String>.from(
+                    jogadorCtrl.posicoesSecundarias,
+                  );
+
+                  // Se clicou na principal, desmarca principal
+                  if (jogadorCtrl.posicaoPrincipal == nome) {
+                    jogadorCtrl.setPosicaoPrincipal('');
+                    return;
+                  }
+
+                  // Se clicou numa que é secundária
+                  if (setSec.contains(nome)) {
+                    // Vira principal, sai de secundária
+                    setSec.remove(nome);
+                    jogadorCtrl.setPosicoesSecundarias(setSec);
+                    jogadorCtrl.setPosicaoPrincipal(nome);
+                    return;
+                  }
+
+                  // Se não tem principal ainda, vira principal
                   if (jogadorCtrl.posicaoPrincipal == null ||
                       jogadorCtrl.posicaoPrincipal!.isEmpty) {
                     jogadorCtrl.setPosicaoPrincipal(nome);
-                  } else if (jogadorCtrl.posicaoPrincipal == nome) {
-                    jogadorCtrl.setPosicaoPrincipal('');
-                  } else {
-                    final setSec = Set<String>.from(
-                      jogadorCtrl.posicoesSecundarias,
-                    );
-                    if (setSec.contains(nome)) {
-                      setSec.remove(nome);
-                    } else if (setSec.length < 3) {
+                    return;
+                  }
+
+                  // Se já existe principal (e clicou em outra), tenta adicionar/remover como secundária
+                  if (!setSec.contains(nome)) {
+                    if (setSec.length < 3) {
                       setSec.add(nome);
+                      jogadorCtrl.setPosicoesSecundarias(setSec);
                     }
+                  } else {
+                    setSec.remove(nome);
                     jogadorCtrl.setPosicoesSecundarias(setSec);
                   }
                 },

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'widgets/botao_voltar.dart';
-import 'widgets/botao_cadastrar.dart';
-import 'widgets/botao_login.dart';
+import 'widgets/botoes/botao_voltar.dart';
+import 'widgets/botoes/botao_cadastrar.dart';
+import 'widgets/botoes/botao_login.dart';
 
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
